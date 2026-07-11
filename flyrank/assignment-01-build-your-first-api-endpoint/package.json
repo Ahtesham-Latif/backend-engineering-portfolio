@@ -1,0 +1,31 @@
+{
+  "name": "assignment-01-build-your-first-api-endpoint",
+  "version": "1.0.0",
+  "description": "FlyRank AI Assignment 01: Build your first API endpoint using Node.js and Express.",
+  "keywords": [
+    "flyrank-ai",
+    "backend",
+    "node.js",
+    "api",
+    "internship"
+  ],
+  "homepage": "https://github.com/Ahtesham-Latif/backend-engineering-portfolio#readme",
+  "bugs": {
+    "url": "https://github.com/Ahtesham-Latif/backend-engineering-portfolio/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Ahtesham-Latif/backend-engineering-portfolio.git"
+  },
+  "license": "MIT",
+  "author": "Ahtesham Latif",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "dev":"node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "express": "^5.2.1"
+  }
+}
