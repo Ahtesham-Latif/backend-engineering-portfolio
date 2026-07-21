@@ -1,5 +1,8 @@
-// 1. Importing Express
+// 1. Importing Express 
+// Importing SwaggerUi
 import express from "express";
+import SwaggerUi from "swagger-ui-express";
+import fs from "fs";
 
 // 2. Creating express app instance
 const app = express();
@@ -24,6 +27,13 @@ function resetTasks() {
   t_id = 4;
 }
 
+// Read the openapi.json file
+const swaggerDocument = JSON.parse(fs.readFileSync("./openapi.json", "utf8"));
+
+// Mount Swagger UI at /api-docs
+app.use("/docs", SwaggerUi.serve, SwaggerUi.setup(swaggerDocument));
+
+
 // 5. Health & Root Endpoints
 app.get("/health", (req, res) => {
   res.status(200).json({ status: "ok" });
@@ -39,10 +49,21 @@ app.get("/", (req, res) => {
 
 // GET /tasks - List all tasks
 app.get("/tasks", (req, res) => {
-  const list = Object.entries(tasks).map(([id, task]) => ({
+  let list = Object.entries(tasks).map(([id, task]) => ({
     id: Number(id),
     ...task
   }));
+    // Filter by completed status: /tasks?done=true or /tasks?done=false
+  if (req.query.done !== undefined) {
+    const isDone = req.query.done === "true";
+    list = list.filter(task => task.done === isDone);
+  }
+
+  // Filter by search keyword: /tasks?search=milk
+  if (req.query.search) {
+    const searchTerm = String(req.query.search).toLowerCase();
+    list = list.filter(task => task.title.toLowerCase().includes(searchTerm));
+  }
   res.status(200).json(list);
 });
 

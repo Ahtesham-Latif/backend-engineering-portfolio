@@ -14,6 +14,8 @@ The API supports full **CRUD (Create, Read, Update, Delete)** functionality and 
 - Dynamic route parameters
 - Proper HTTP status codes
 - JSON request/response handling
+- Swagger/OpenAPI documentation via Swagger UI
+- Query-based filtering for listing tasks
 
 Unlike a database-backed application, this project stores all tasks in a JavaScript object, making it ideal for learning how REST APIs work before introducing persistent databases such as MongoDB or PostgreSQL.
 
@@ -25,6 +27,7 @@ Unlike a database-backed application, this project stores all tasks in a JavaScr
 - Express.js
 - JavaScript (ES Modules)
 - JSON
+- Swagger UI + OpenAPI
 - curl (API Testing)
 
 ---
@@ -36,6 +39,7 @@ assignment-01-Build-your-first-CRUD-API/
 │
 ├── Documentation.md
 ├── index.js
+├── openapi.json
 ├── package.json
 └── package-lock.json
 ```
@@ -55,6 +59,12 @@ The server will run on:
 
 ```text
 http://localhost:3000
+```
+
+The API documentation is available through Swagger UI at:
+
+```text
+http://localhost:3000/docs
 ```
 
 ---
@@ -207,6 +217,14 @@ Object.entries(tasks)
 ```
 
 is used.
+
+The endpoint now also supports optional query filters:
+
+- `GET /tasks?done=true` → returns only completed tasks
+- `GET /tasks?done=false` → returns only open tasks
+- `GET /tasks?search=milk` → returns tasks whose titles contain the search term
+
+These filters can be combined to narrow the list further.
 
 ---
 
