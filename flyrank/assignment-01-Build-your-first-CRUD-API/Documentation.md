@@ -1,5 +1,9 @@
 # Assignment 01 - Build Your First CRUD API
 
+This document is the formal technical reference for the assignment.
+
+For the step-by-step learning notes and implementation journey, see `Learning.md` in the project folder.
+
 ## Objective
 
 This assignment focuses on building a complete RESTful API with **Express.js** that manages an in-memory collection of tasks.
