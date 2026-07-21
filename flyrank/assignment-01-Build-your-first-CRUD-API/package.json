@@ -1,7 +1,7 @@
 {
-  "name": "assignment-01-build-your-first-api-endpoint",
+  "name": "assignment-01-build-your-first-crud-api",
   "version": "1.0.0",
-  "description": "FlyRank AI Assignment 01: Build your first API endpoint using Node.js and Express.",
+  "description": "FlyRank AI Assignment 01: Build your first CRUD API using Node.js and Express.",
   "keywords": [
     "flyrank-ai",
     "backend",
