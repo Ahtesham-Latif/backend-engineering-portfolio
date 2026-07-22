@@ -99,7 +99,7 @@ let tasks = {
   2: { title: "Read Express docs", done: true },
   3: { title: "Complete Stage 4", done: false }
 };
-let t_id = 4;
+let nextTaskId = 4;
 ```
 
 This is a simple in-memory database for learning.
@@ -158,19 +158,28 @@ app.get("/tasks", (req, res) => {
   }));
 
   if (req.query.done !== undefined) {
-    list = list.filter(task => task.done === (req.query.done === "true"));
+    const isDone = String(req.query.done)
+      .trim()
+      .replace(/["']/g, "")
+      .toLowerCase() === "true";
+
+    list = list.filter(task => task.done === isDone);
   }
 
-  if (req.query.search) {
-    const searchTerm = String(req.query.search).toLowerCase();
+  if (req.query.search !== undefined) {
+    const searchTerm = String(req.query.search)
+      .trim()
+      .replace(/["']/g, "")
+      .toLowerCase();
+
     list = list.filter(task => task.title.toLowerCase().includes(searchTerm));
   }
 
-  res.status(200).json(list);
+  res.status(200).json({ list });
 });
 ```
 
-This endpoint returns all tasks and supports filters like:
+This endpoint returns a wrapped response object with a `list` field and supports filters like:
 
 ```http
 GET /tasks?done=true
@@ -192,15 +201,15 @@ If the ID is invalid or missing, the API returns a `404`.
 
 ```js
 app.post("/tasks", (req, res) => {
-  let title = req.body.title ? String(req.body.title).trim() : "";
+  const title = String(req.body.title ?? "").trim();
 
   if (!title) {
     return res.status(400).json({ error: "Title is required and cannot be empty" });
   }
 
-  const id = t_id;
+  const id = nextTaskId;
   tasks[id] = { title, done: false };
-  t_id++;
+  nextTaskId++;
 
   res.status(201).json({ id, title, done: false });
 });

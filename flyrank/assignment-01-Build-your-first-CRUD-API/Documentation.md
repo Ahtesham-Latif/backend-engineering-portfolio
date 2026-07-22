@@ -208,27 +208,46 @@ Example Response
 
 ### GET /tasks
 
-Returns every task.
+Returns every task as a wrapped response object:
 
-Internally, tasks are stored as an object.
+```json
+{
+    "list": [
+        {
+            "id": 1,
+            "title": "Buy milk",
+            "done": false
+        }
+    ]
+}
+```
 
-Clients expect an array.
+Internally, tasks are still stored as an object.
 
-Therefore,
+The array is produced with:
 
 ```js
 Object.entries(tasks)
 ```
 
-is used.
+and then mapped into the API response format.
 
-The endpoint now also supports optional query filters:
+The endpoint also supports optional query filters:
 
 - `GET /tasks?done=true` → returns only completed tasks
 - `GET /tasks?done=false` → returns only open tasks
 - `GET /tasks?search=milk` → returns tasks whose titles contain the search term
 
-These filters can be combined to narrow the list further.
+The latest implementation uses a small regex cleanup pattern before filtering:
+
+```js
+const isDone = String(req.query.done)
+    .trim()
+    .replace(/["']/g, "")
+    .toLowerCase() === "true";
+```
+
+This is a common defensive pattern used in real APIs to normalize user input before comparisons.
 
 ---
 
@@ -343,15 +362,24 @@ Response
 
 ---
 
-## 11. Input Sanitization
+## 11. Input Sanitization and Regular Expression Cleanup
 
-Whitespace is removed before storing data.
+Whitespace is removed before storing data, and query strings are normalized with a lightweight regex cleanup step before comparison.
 
 ```js
-let title = req.body.title
-    ? String(req.body.title).trim()
-    : "";
+const title = String(req.body.title ?? "").trim();
+
+const isDone = String(req.query.done)
+    .trim()
+    .replace(/["']/g, "")
+    .toLowerCase() === "true";
 ```
+
+This practice improves robustness because it handles small input inconsistencies such as:
+
+- extra spaces
+- stray quotes around values
+- case differences like `TRUE` or `True`
 
 Example
 
