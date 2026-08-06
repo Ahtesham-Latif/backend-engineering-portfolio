@@ -42,11 +42,53 @@ Unlike a database-backed application, this project stores all tasks in a JavaScr
 assignment-01-Build-your-first-CRUD-API/
 │
 ├── Documentation.md
+├── Learning.md
 ├── index.js
 ├── openapi.json
 ├── package.json
-└── package-lock.json
+├── package-lock.json
+└── src/
+    ├── app.js
+    ├── controllers/
+    │   └── taskController.js
+    ├── middleware/
+    │   └── errorHandler.js
+    ├── routes/
+    │   ├── metaRoutes.js
+    │   └── taskRoutes.js
+    ├── services/
+    │   └── taskServices.js
+    └── errors.js
 ```
+
+---
+
+# Layered Architecture
+
+The code is structured in clear application layers:
+
+- `src/app.js` - application setup, middleware, and route registration
+- `src/routes/*.js` - route definitions for HTTP endpoints
+- `src/controllers/*.js` - request handling and response formatting
+- `src/services/*.js` - task business logic and validation
+- `src/middleware/errorHandler.js` - centralized Express error middleware
+- `src/errors.js` - shared error classes used across controllers and services
+
+This separation makes the project easier to extend later, for example by adding a SQLite repository layer without changing routes or controllers.
+
+---
+
+# Error Handling
+
+Errors are managed in a dedicated middleware layer. Controllers forward exceptions to `errorHandler`, and custom error classes are defined in `src/errors.js`.
+
+Example:
+
+- `BadRequestError` for invalid input
+- `NotFoundError` for missing tasks
+- `AppError` as the base error class
+
+This keeps route logic simple and allows consistent JSON error responses.
 
 ---
 

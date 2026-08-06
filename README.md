@@ -28,6 +28,8 @@ The first major project in this portfolio demonstrates a complete Express-based 
 - Health and stats endpoints
 - Input validation and sanitization
 - Swagger UI documentation integration
+- Layered route/controller/service architecture
+- Centralized middleware and error handling
 - Query-based filtering on task listing
 
 Explore the project here:
@@ -49,7 +51,19 @@ backend-engineering-portfolio/
         ├── index.js
         ├── openapi.json
         ├── package.json
-        └── package-lock.json
+        ├── package-lock.json
+        └── src/
+            ├── app.js
+            ├── controllers/
+            │   └── taskController.js
+            ├── middleware/
+            │   └── errorHandler.js
+            ├── routes/
+            │   ├── metaRoutes.js
+            │   └── taskRoutes.js
+            ├── services/
+            │   └── taskServices.js
+            └── errors.js
 ```
 
 ---

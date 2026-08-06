@@ -6,268 +6,108 @@ It explains the build process and reasoning in plain language.
 
 For the formal assignment reference, use `Documentation.md` inside the project folder.
 
+## Personal introduction
+
+Hi, my name is Ahtesham, and I'd like to walk you through one of my backend projects.
+
+This is a RESTful CRUD API built with Express.js using a layered architecture. I chose this architecture because it separates responsibilities into different layers, making the application easier to maintain, test, debug, and scale.
+
+The application starts from `index.js`, which is the entry point. It imports the Express application from `app.js`, configures the port, and starts the server.
+
+The main application configuration is inside `app.js`. Here I create the Express application, register middleware like `express.json()`, mount all the route modules, configure Swagger UI, and register the global error-handling middleware.
+
+For API documentation, I use `openapi.json`, which contains the OpenAPI specification. Swagger UI reads this file and automatically generates interactive API documentation, allowing developers to explore and test every endpoint directly from the browser.
+
+The application follows a layered architecture:
+
+- **Routes** define the API endpoints and map incoming HTTP requests to the appropriate controller.
+- **Controllers** receive the request, extract route parameters, query parameters, and the request body, perform basic request-level validation, and delegate the request to the service layer.
+- **Services** contain the application's business logic, such as creating, reading, updating, deleting, searching, and filtering task data stored in the in-memory database.
+- **Middleware** provides centralized error handling, ensuring that all errors return consistent HTTP responses.
+
+The request flow is simple: a client sends a request to a route, the route forwards it to the controller, the controller calls the service layer, the service executes the business logic and returns the result, and finally the controller sends the HTTP response back to the client.
+
+Currently, the project uses an in-memory data store. If I wanted to make it production-ready, I could add a model and database layer using MongoDB, PostgreSQL, or SQLite without making major changes to the routes or controllers because the responsibilities are already well separated.
+
+Building this project helped me understand how production-grade backend applications are structured and why separation of concerns is important for writing clean, maintainable, and scalable software.
 ## What this project is
 
 This repo is a small Node.js + Express API for managing tasks.
 
-It teaches the basics of:
-
-- creating a backend server
-- defining REST routes
-- handling JSON input/output
-- validating requests
-- documenting APIs with Swagger
-- writing a clean portfolio README
+It teaches the basics of backend server setup, REST routes, JSON handling, validation, Swagger documentation, and portfolio presentation.
 
 ---
 
-## Step 1: Start with `npm init`
+## Project setup
 
-```bash
-npm init -y
-```
-
-This creates `package.json`.
-
-That file is important because it stores:
-
-- project name
-- scripts
-- dependencies
-- runtime settings
-
-A minimal example from this project:
-
-```json
-{
-  "name": "assignment-01-build-your-first-crud-api",
-  "version": "1.0.0",
-  "type": "module",
-  "scripts": {
-    "dev": "node --watch index.js",
-    "start": "node index.js"
-  },
-  "dependencies": {
-    "express": "^5.2.1",
-    "swagger-ui-express": "^5.0.1"
-  }
-}
-```
-
-The important part here is `type: "module"`, which allows modern ES import syntax.
+- `npm init -y` creates `package.json`
+- `npm install express swagger-ui-express` adds the required packages
+- `type: "module"` enables ES module imports
 
 ---
 
-## Step 2: Install the dependencies
+## App structure
 
-```bash
-npm install express
-npm install swagger-ui-express
-```
+In `src/app.js` the app:
 
-### Why these packages?
-
-- `express` handles the HTTP server and routes
-- `swagger-ui-express` exposes the API docs in the browser
+- creates the Express instance
+- registers `express.json()`
+- serves Swagger UI at `/docs`
+- mounts `metaRoutes` and `taskRoutes`
+- registers centralized error handling
 
 ---
 
-## Step 3: Create the Express app instance
+## In-memory storage
 
-```js
-import express from "express";
-import SwaggerUi from "swagger-ui-express";
-import fs from "fs";
-
-const app = express();
-app.use(express.json());
-```
-
-### What this does
-
-- creates the Express application instance with `const app = express()`
-- adds JSON request parsing middleware with `app.use(express.json())`
-- prepares the app for route registration and Swagger documentation
+Tasks live in a simple in-memory object with auto-incrementing IDs. This avoids database setup and keeps the focus on API design.
 
 ---
 
-## Step 4: In-memory task storage
+## Reset behavior
 
-```js
-let tasks = {
-  1: { title: "Buy milk", done: false },
-  2: { title: "Read Express docs", done: true },
-  3: { title: "Complete Stage 4", done: false }
-};
-let nextTaskId = 4;
-```
-
-This is a simple in-memory database for learning.
-
-It means:
-
-- no database setup is needed
-- data is easy to inspect
-- data resets when the server restarts
+A reset function restores the initial sample tasks so the app can return to a known state for testing.
 
 ---
 
-## Step 5: Reset function
+## Swagger documentation
 
-```js
-function resetTasks() {
-  tasks = {
-    1: { title: "Buy milk", done: false },
-    2: { title: "Read Express docs", done: true },
-    3: { title: "Complete Stage 4", done: false }
-  };
-  t_id = 4;
-}
-```
-
-This function restores the initial sample tasks. It is useful for testing and keeping the app in a known state.
+`openapi.json` provides the API specification and is served by Swagger UI at `/docs`.
 
 ---
 
-## Step 6: Add Swagger docs
+## API routes
 
-```js
-const swaggerDocument = JSON.parse(fs.readFileSync("./openapi.json", "utf8"));
-app.use("/docs", SwaggerUi.serve, SwaggerUi.setup(swaggerDocument));
-```
+The project supports:
 
-This loads the OpenAPI document from `openapi.json` and mounts Swagger UI on the `/docs` route.
+- `GET /tasks` with optional `done` and `search` filters
+- `GET /tasks/:id`
+- `POST /tasks`
+- `PUT /tasks/:id`
+- `DELETE /tasks/:id`
 
-So the interactive docs are available at:
+Routes are defined in `src/routes/taskRoutes.js` and controllers delegate business logic to services.
+
+---
+
+## Request flow
 
 ```text
-http://localhost:3000/docs
+client request -> route -> controller -> service -> response
 ```
+
+Controllers validate requests and forward logic to services, while centralized middleware handles errors consistently.
 
 ---
 
-## Step 7: Main routes
-
-### `GET /tasks`
-
-```js
-app.get("/tasks", (req, res) => {
-  let list = Object.entries(tasks).map(([id, task]) => ({
-    id: Number(id),
-    ...task
-  }));
-
-  if (req.query.done !== undefined) {
-    const isDone = String(req.query.done)
-      .trim()
-      .replace(/["']/g, "")
-      .toLowerCase() === "true";
-
-    list = list.filter(task => task.done === isDone);
-  }
-
-  if (req.query.search !== undefined) {
-    const searchTerm = String(req.query.search)
-      .trim()
-      .replace(/["']/g, "")
-      .toLowerCase();
-
-    list = list.filter(task => task.title.toLowerCase().includes(searchTerm));
-  }
-
-  res.status(200).json({ list });
-});
-```
-
-This endpoint returns a wrapped response object with a `list` field and supports filters like:
-
-```http
-GET /tasks?done=true
-GET /tasks?done=false
-GET /tasks?search=milk
-```
-
-### `GET /tasks/:id`
-
-This returns one task by ID.
-
-```js
-const taskId = Number(req.params.id);
-```
-
-If the ID is invalid or missing, the API returns a `404`.
-
-### `POST /tasks`
-
-```js
-app.post("/tasks", (req, res) => {
-  const title = String(req.body.title ?? "").trim();
-
-  if (!title) {
-    return res.status(400).json({ error: "Title is required and cannot be empty" });
-  }
-
-  const id = nextTaskId;
-  tasks[id] = { title, done: false };
-  nextTaskId++;
-
-  res.status(201).json({ id, title, done: false });
-});
-```
-
-This creates a new task and validates the title.
-
-### `PUT /tasks/:id`
-
-Updates the task title and/or completion status.
-
-This is not a full API reference; the formal endpoint behavior is documented in `Documentation.md`.
-
-### `DELETE /tasks/:id`
-
-Deletes the selected task.
-
----
-
-## Step 8: How the whole flow works
-
-A request goes through this path:
-
-```text
-client request -> Express route -> validation -> task update -> JSON response
-```
-
-Example:
-
-```http
-POST /tasks
-Content-Type: application/json
-
-{
-  "title": "Write documentation"
-}
-```
-
-The server creates a new task in memory and responds with:
-
-```json
-{
-  "id": 4,
-  "title": "Write documentation",
-  "done": false
-}
-```
-
----
-
-## Step 9: Run it locally
+## Run locally
 
 ```bash
 npm install
 npm run dev
 ```
 
-Then open:
+Open:
 
 ```text
 http://localhost:3000
@@ -276,40 +116,12 @@ http://localhost:3000/docs
 
 ---
 
-## Step 10: README improvement
+## Project polish
 
-The root `README.md` was updated to feel more mature and portfolio-ready.
-
-This makes the repository look like a real engineering artifact instead of just a basic homework folder.
-
----
-
-## Last 3 commits
-
-```text
-2d4eb25 docs: refresh project README and documentation for assignment 01
-3b25650 feat: add Swagger docs and task filtering
-bb580c9 Stage 4: refactor to tasks and complete full CRUD
-```
-
-### What they mean
-
-- the docs were polished
-- Swagger docs were added
-- task filtering was added
-- the CRUD flow was completed and refactored
+The root `README.md` was improved for a portfolio-style presentation.
 
 ---
 
 ## Final takeaway
 
-This project is a good example of how a small backend API moves from:
-
-- `npm init`
-- Express setup
-- route creation
-- CRUD logic
-- documentation
-- polished portfolio presentation
-
-It is simple, but it shows the real lifecycle of a backend learning project very clearly.
+This project shows the backend learning path from setup to Express routing, CRUD logic, Swagger docs, and polished project presentation.
