@@ -1,5 +1,7 @@
 import sqlite3 from 'sqlite3';
-
+// SQLite Viewer instead of DB Browser for Sqlite
+// I am using codespace so , i prefer to use SQLite Viewer extension instead of DB Browser for SQLite.
+// Note: If you are using DB Browser for SQLite, you may need to change the path of the database file in the code below to match your local setup.
 sqlite3.verbose();
 
 const DB_PATH = new URL('../../tasks.db', import.meta.url);
