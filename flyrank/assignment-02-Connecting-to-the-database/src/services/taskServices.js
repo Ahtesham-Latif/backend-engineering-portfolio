@@ -115,32 +115,114 @@ function createTask(title) {
 }
 
 function updateTask(taskId, data = {}) {
-  if (!Number.isInteger(taskId) || !Object.prototype.hasOwnProperty.call(tasks, taskId)) {
-    return null;
-  }
-
-  if (data.title !== undefined) {
-    const trimmedTitle = String(data.title).trim();
-    if (!trimmedTitle) {
-      throw new BadRequestError('Title cannot be empty');
+  return new Promise((resolve, reject) => {
+    if (!Number.isInteger(taskId)) {
+      resolve(null);
+      return;
     }
-    tasks[taskId].title = trimmedTitle;
-  }
 
-  if (data.done !== undefined) {
-    tasks[taskId].done = Boolean(data.done);
-  }
+    db.get('SELECT id FROM tasks WHERE id = ?', [taskId], (existError, row) => {
+      if (existError) {
+        reject(existError);
+        return;
+      }
 
-  return { id: taskId, ...tasks[taskId] };
+      if (!row) {
+        resolve(null);
+        return;
+      }
+
+      const fields = [];
+      const params = [];
+
+      if (data.title !== undefined) {
+        const trimmedTitle = String(data.title ?? '').trim();
+        if (!trimmedTitle) {
+          reject(new BadRequestError('Title cannot be empty'));
+          return;
+        }
+
+        fields.push('title = ?');
+        params.push(trimmedTitle);
+      }
+
+      if (data.done !== undefined) {
+        const normalizedDone = String(data.done ?? '')
+          .trim()
+          .toLowerCase();
+
+        if (normalizedDone === 'true' || normalizedDone === '1' || data.done === true) {
+          fields.push('done = ?');
+          params.push('true');
+        } else if (normalizedDone === 'false' || normalizedDone === '0' || data.done === false) {
+          fields.push('done = ?');
+          params.push('false');
+        } else {
+          reject(new BadRequestError('done must be true or false'));
+          return;
+        }
+      }
+
+      if (fields.length === 0) {
+        db.get('SELECT id, title, done FROM tasks WHERE id = ?', [taskId], (readError, selectedRow) => {
+          if (readError) {
+            reject(readError);
+            return;
+          }
+
+          resolve(taskFromRow(selectedRow));
+        });
+        return;
+      }
+
+      const sql = `UPDATE tasks SET ${fields.join(', ')} WHERE id = ?`;
+      db.run(sql, [...params, taskId], (updateError) => {
+        if (updateError) {
+          reject(updateError);
+          return;
+        }
+
+        db.get('SELECT id, title, done FROM tasks WHERE id = ?', [taskId], (readError, selectedRow) => {
+          if (readError) {
+            reject(readError);
+            return;
+          }
+
+          resolve(taskFromRow(selectedRow));
+        });
+      });
+    });
+  });
 }
 
 function deleteTask(taskId) {
-  if (!Number.isInteger(taskId) || !Object.prototype.hasOwnProperty.call(tasks, taskId)) {
-    return false;
-  }
+  return new Promise((resolve, reject) => {
+    if (!Number.isInteger(taskId)) {
+      resolve(false);
+      return;
+    }
 
-  delete tasks[taskId];
-  return true;
+    db.get('SELECT id FROM tasks WHERE id = ?', [taskId], (checkError, row) => {
+      if (checkError) {
+        reject(checkError);
+        return;
+      }
+
+      if (!row) {
+        resolve(false);
+        return;
+      }
+
+      db.run('DELETE FROM tasks WHERE id = ?', [taskId], (deleteError) => {
+        if (deleteError) {
+          reject(deleteError);
+          return;
+        }
+
+        resolve(true);
+      });
+    });
+  });
 }
 
 function resetTasks() {

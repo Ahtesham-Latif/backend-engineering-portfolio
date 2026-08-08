@@ -32,25 +32,25 @@ export async function createTask(req, res, next) {
   }
 }
 
-export function updateTask(req, res, next) {
+export async function updateTask(req, res, next) {
   try {
     const taskId = Number(req.params.id);
-    const existingTask = taskService.getTaskById(taskId);
+    const existingTask = await taskService.getTaskById(taskId);
     if (!existingTask) {
       throw new NotFoundError(`Task ${req.params.id} not found`);
     }
 
-    const task = taskService.updateTask(taskId, { title: req.body.title, done: req.body.done });
+    const task = await taskService.updateTask(taskId, { title: req.body.title, done: req.body.done });
     res.status(200).json(task);
   } catch (error) {
     next(error);
   }
 }
 
-export function deleteTask(req, res, next) {
+export async function deleteTask(req, res, next) {
   try {
     const taskId = Number(req.params.id);
-    const deleted = taskService.deleteTask(taskId);
+    const deleted = await taskService.deleteTask(taskId);
     if (!deleted) {
       throw new NotFoundError(`Task ${req.params.id} not found`);
     }
