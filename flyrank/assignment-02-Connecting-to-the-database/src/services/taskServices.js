@@ -88,14 +88,30 @@ function getTaskById(taskId) {
 }
 
 function createTask(title) {
-  const trimmedTitle = String(title ?? '').trim();
-  if (!trimmedTitle) {
-    throw new BadRequestError('Title is required and cannot be empty');
-  }
+  return new Promise((resolve, reject) => {
+    const trimmedTitle = String(title ?? '').trim();
+    if (!trimmedTitle) {
+      reject(new BadRequestError('Title is required and cannot be empty'));
+      return;
+    }
 
-  const id = nextTaskId++;
-  tasks[id] = { title: trimmedTitle, done: false };
-  return { id, ...tasks[id] };
+    db.run(
+      'INSERT INTO tasks (title, done) VALUES (?, ?)',
+      [trimmedTitle, 'false'],
+      function onInsert(error) {
+        if (error) {
+          reject(error);
+          return;
+        }
+
+        resolve({
+          id: this.lastID,
+          title: trimmedTitle,
+          done: false
+        });
+      }
+    );
+  });
 }
 
 function updateTask(taskId, data = {}) {

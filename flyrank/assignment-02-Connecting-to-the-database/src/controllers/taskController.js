@@ -23,9 +23,9 @@ export async function getTask(req, res, next) {
   }
 }
 
-export function createTask(req, res, next) {
+export async function createTask(req, res, next) {
   try {
-    const task = taskService.createTask(req.body.title);
+    const task = await taskService.createTask(req.body.title);
     res.status(201).json(task);
   } catch (error) {
     next(error);
