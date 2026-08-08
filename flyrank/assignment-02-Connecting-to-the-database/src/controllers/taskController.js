@@ -1,19 +1,19 @@
 import * as taskService from '../services/taskServices.js';
 import { NotFoundError } from '../errors.js';
 
-export function listTasks(req, res, next) {
+export async function listTasks(req, res, next) {
   try {
-    const list = taskService.listTasks({ done: req.query.done, search: req.query.search });
+    const list = await taskService.listTasks({ done: req.query.done, search: req.query.search });
     res.status(200).json({ list });
   } catch (error) {
     next(error);
   }
 }
 
-export function getTask(req, res, next) {
+export async function getTask(req, res, next) {
   try {
     const taskId = Number(req.params.id);
-    const task = taskService.getTaskById(taskId);
+    const task = await taskService.getTaskById(taskId);
     if (!task) {
       throw new NotFoundError(`Task ${req.params.id} not found`);
     }

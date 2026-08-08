@@ -1,3 +1,6 @@
+import { db } from '../database/db.js';
+import { BadRequestError } from '../errors.js';
+
 const initialTasks = {
   1: { title: 'Buy milk', done: false },
   2: { title: 'Read Express docs', done: true },
@@ -7,38 +10,82 @@ const initialTasks = {
 let tasks = { ...initialTasks };
 let nextTaskId = 4;
 
+function taskFromRow(row) {
+  if (!row) {
+    return null;
+  }
+
+  return {
+    id: row.id,
+    title: row.title,
+    done: row.done === 'true' || row.done === true
+  };
+}
+
 function listTasks({ done, search } = {}) {
-  let list = Object.entries(tasks).map(([id, task]) => ({ id: Number(id), ...task }));
+  return new Promise((resolve, reject) => {
+    let sql = 'SELECT id, title, done FROM tasks';
+    const params = [];
+    const clauses = [];
 
-  if (done !== undefined) {
-    const isDone = String(done)
-      .trim()
-      .replace(/['"]/g, '')
-      .toLowerCase() === 'true';
+    if (done !== undefined) {
+      const normalizedDone = String(done)
+        .trim()
+        .replace(/['"]/g, '')
+        .toLowerCase();
 
-    list = list.filter(task => task.done === isDone);
-  }
+      if (normalizedDone !== 'true' && normalizedDone !== 'false') {
+        reject(new BadRequestError('done must be true or false'));
+        return;
+      }
 
-  if (search !== undefined) {
-    const searchTerm = String(search)
-      .trim()
-      .replace(/['"]/g, '')
-      .toLowerCase();
+      clauses.push('done = ?');
+      params.push(normalizedDone);
+    }
 
-    list = list.filter(task => task.title.toLowerCase().includes(searchTerm));
-  }
+    if (search !== undefined) {
+      const normalizedSearch = String(search)
+        .trim()
+        .replace(/['"]/g, '');
 
-  return list;
+      clauses.push('title LIKE ?');
+      params.push(`%${normalizedSearch}%`);
+    }
+
+    if (clauses.length > 0) {
+      sql += ` WHERE ${clauses.join(' AND ')}`;
+    }
+
+    sql += ' ORDER BY id ASC';
+
+    db.all(sql, params, (error, rows) => {
+      if (error) {
+        reject(error);
+        return;
+      }
+
+      resolve(rows.map(taskFromRow));
+    });
+  });
 }
 
 function getTaskById(taskId) {
-  if (!Number.isInteger(taskId) || !Object.prototype.hasOwnProperty.call(tasks, taskId)) {
-    return null;
-  }
-  return { id: taskId, ...tasks[taskId] };
-}
+  return new Promise((resolve, reject) => {
+    if (!Number.isInteger(taskId)) {
+      resolve(null);
+      return;
+    }
 
-import { BadRequestError } from '../errors.js';
+    db.get('SELECT id, title, done FROM tasks WHERE id = ?', [taskId], (error, row) => {
+      if (error) {
+        reject(error);
+        return;
+      }
+
+      resolve(taskFromRow(row));
+    });
+  });
+}
 
 function createTask(title) {
   const trimmedTitle = String(title ?? '').trim();
