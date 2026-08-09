@@ -1,0 +1,35 @@
+{
+  "name": "assignment-02-connecting-to-the-database",
+  "version": "1.0.0",
+  "description": "FlyRank AI Assignment 02: Connect the CRUD API to SQLite using Node.js and Express.",
+  "keywords": [
+    "flyrank-ai",
+    "backend",
+    "node.js",
+    "api",
+    "internship"
+  ],
+  "homepage": "https://github.com/Ahtesham-Latif/backend-engineering-portfolio#readme",
+  "bugs": {
+    "url": "https://github.com/Ahtesham-Latif/backend-engineering-portfolio/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Ahtesham-Latif/backend-engineering-portfolio.git"
+  },
+  "license": "MIT",
+  "author": "Ahtesham Latif",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "node --env-file=.env index.js",
+    "dev": "node --watch --env-file=.env index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "pg": "^8.23.0",
+    "swagger-ui-express": "^5.0.1"
+  }
+}
