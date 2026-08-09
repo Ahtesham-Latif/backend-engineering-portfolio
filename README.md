@@ -55,6 +55,23 @@ Explore the project here:
 - [flyrank/assignment-02-Connecting-to-the-database](flyrank/assignment-02-Connecting-to-the-database)
 - [Documentation](flyrank/assignment-02-Connecting-to-the-database/Documentation.md)
 
+### Assignment 03 — Containerize Your Stack
+
+The third major project moves the API from a single-process local runtime to a containerized service-oriented architecture:
+
+- Express API served from a Node.js-based Docker container
+- PostgreSQL database served from a dedicated container
+- Docker Compose orchestration for the application and database services
+- `pg.Pool`-driven asynchronous database access through the PostgreSQL driver
+- Health checks, shared Docker networking, and a named `pgdata` volume for persistence
+- Environment-driven configuration using `.env` files for host, user, password, and database settings
+- Seed and schema initialization performed inside the database bootstrap flow
+
+Explore the project here:
+
+- [flyrank/assignment-03-Containerize-your-stack](flyrank/assignment-03-Containerize-your-stack)
+- [Documentation](flyrank/assignment-03-Containerize-your-stack/Documentation.md)
+
 ---
 
 ## 🏗️ Repository Structure
@@ -84,14 +101,41 @@ backend-engineering-portfolio/
 │   │       └── services/
 │   │           └── taskServices.js
 │   │
-│   └── assignment-02-Connecting-to-the-database/
+│   ├── assignment-02-Connecting-to-the-database/
+│   │   ├── Documentation.md
+│   │   ├── Learning.md
+│   │   ├── index.js
+│   │   ├── openapi.json
+│   │   ├── package.json
+│   │   ├── package-lock.json
+│   │   ├── tasks.db
+│   │   └── src/
+│   │       ├── app.js
+│   │       ├── errors.js
+│   │       ├── controllers/
+│   │       │   └── taskController.js
+│   │       ├── database/
+│   │       │   └── db.js
+│   │       ├── middleware/
+│   │       │   └── errorHandler.js
+│   │       ├── routes/
+│   │       │   ├── metaRoutes.js
+│   │       │   └── taskRoutes.js
+│   │       └── services/
+│   │           └── taskServices.js
+│   │
+│   └── assignment-03-Containerize-your-stack/
+│       ├── .dockerignore
+│       ├── .env
+│       ├── .env.example
+│       ├── Dockerfile
 │       ├── Documentation.md
 │       ├── Learning.md
+│       ├── docker-compose.yml
 │       ├── index.js
 │       ├── openapi.json
 │       ├── package.json
 │       ├── package-lock.json
-│       ├── tasks.db
 │       └── src/
 │           ├── app.js
 │           ├── errors.js
@@ -116,6 +160,8 @@ backend-engineering-portfolio/
 - Clean project organization across learning assignments
 - Documentation-first development practices
 - API exploration through Swagger/OpenAPI tooling
+- Containerization patterns using Docker and Docker Compose
+- PostgreSQL integration with a protected database layer and connection pooling
 - Iterative backend development with focus on maintainability
 
 ---
