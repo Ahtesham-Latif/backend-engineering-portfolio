@@ -1,4 +1,4 @@
-# Assignment 01 - Build Your First CRUD API
+# Assignment 02 - Connecting to the Database
 
 This document is the formal technical reference for the assignment.
 
@@ -6,22 +6,22 @@ For the step-by-step learning notes and implementation journey, see `Learning.md
 
 ## Objective
 
-This assignment focuses on building a complete RESTful API with **Express.js** that manages an in-memory collection of tasks.
+This assignment continues the CRUD API work by replacing the in-memory task collection with a real **SQLite database**. The API remains the same from a client perspective:
 
-The API supports full **CRUD (Create, Read, Update, Delete)** functionality and also includes:
+- `GET /tasks` returns every task.
+- `GET /tasks/:id` returns one task.
+- `POST /tasks` creates a new task.
+- `PUT /tasks/:id` updates an existing task.
+- `DELETE /tasks/:id` removes a task.
 
-- Health monitoring
-- Server statistics
-- Resetting the sample data
-- Input validation
-- Input sanitization
-- Dynamic route parameters
-- Proper HTTP status codes
-- JSON request/response handling
-- Swagger/OpenAPI documentation via Swagger UI
-- Query-based filtering for listing tasks
+The main change is not in the API design, but in the **data layer**. Tasks are no longer stored inside JavaScript variables. They are persisted in a database file called `tasks.db` on disk.
 
-Unlike a database-backed application, this project stores all tasks in a JavaScript object, making it ideal for learning how REST APIs work before introducing persistent databases such as MongoDB or PostgreSQL.
+This assignment introduces the core backend engineering idea that:
+
+- **API layer** describes what the application does.
+- **Database layer** describes where the application stores its data.
+
+That separation is a key architectural concept because the API contract can remain stable even when the storage mechanism changes.
 
 ---
 
@@ -30,6 +30,8 @@ Unlike a database-backed application, this project stores all tasks in a JavaScr
 - Node.js
 - Express.js
 - JavaScript (ES Modules)
+- SQLite
+- `sqlite3` driver
 - JSON
 - Swagger UI + OpenAPI
 - curl (API Testing)
@@ -39,7 +41,7 @@ Unlike a database-backed application, this project stores all tasks in a JavaScr
 # Project Structure
 
 ```text
-assignment-01-Build-your-first-CRUD-API/
+assignment-02-Connecting-to-the-database/
 │
 ├── Documentation.md
 ├── Learning.md
@@ -47,10 +49,13 @@ assignment-01-Build-your-first-CRUD-API/
 ├── openapi.json
 ├── package.json
 ├── package-lock.json
+├── tasks.db
 └── src/
     ├── app.js
     ├── controllers/
     │   └── taskController.js
+    ├── database/
+    │   └── db.js
     ├── middleware/
     │   └── errorHandler.js
     ├── routes/
@@ -67,28 +72,59 @@ assignment-01-Build-your-first-CRUD-API/
 
 The code is structured in clear application layers:
 
-- `src/app.js` - application setup, middleware, and route registration
-- `src/routes/*.js` - route definitions for HTTP endpoints
-- `src/controllers/*.js` - request handling and response formatting
-- `src/services/*.js` - task business logic and validation
-- `src/middleware/errorHandler.js` - centralized Express error middleware
-- `src/errors.js` - shared error classes used across controllers and services
+- `src/app.js` - application setup, middleware, Swagger setup, and route registration.
+- `src/routes/*.js` - route definitions for HTTP endpoints.
+- `src/controllers/*.js` - request handling and response formatting.
+- `src/services/*.js` - SQL-backed service logic and validation.
+- `src/database/db.js` - SQLite connection, database initialization, and seed logic.
+- `src/middleware/errorHandler.js` - centralized Express error middleware.
+- `src/errors.js` - shared custom error classes.
 
-This separation makes the project easier to extend later, for example by adding a SQLite repository layer without changing routes or controllers.
+This separation keeps the API routes stable even though persistence moves from in-memory state to a relational database.
+
+---
+
+# Database Design
+
+The database file is named:
+
+```text
+tasks.db
+```
+
+On startup, the application creates the `tasks` table if it does not already exist. The table is defined as:
+
+```sql
+CREATE TABLE IF NOT EXISTS tasks (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  title TEXT NOT NULL,
+  done TEXT NOT NULL CHECK (done IN ('true', 'false')) DEFAULT 'false'
+);
+```
+
+The three example tasks are inserted only when the table is empty:
+
+```text
+Buy milk
+Read Express docs
+Started stage 0
+```
+
+This means that restarting the server does not delete task data. The sample tasks appear once on first creation of the database file.
 
 ---
 
 # Error Handling
 
-Errors are managed in a dedicated middleware layer. Controllers forward exceptions to `errorHandler`, and custom error classes are defined in `src/errors.js`.
+Errors are managed in a dedicated middleware layer. Controllers forward exceptions to the central `errorHandler`, and custom error classes are defined in `src/errors.js`.
 
-Example:
+Examples:
 
 - `BadRequestError` for invalid input
 - `NotFoundError` for missing tasks
 - `AppError` as the base error class
 
-This keeps route logic simple and allows consistent JSON error responses.
+This keeps route logic simple and ensures that database operations return consistent JSON error responses.
 
 ---
 
@@ -113,591 +149,345 @@ The API documentation is available through Swagger UI at:
 http://localhost:3000/docs
 ```
 
----
-
-# Key Concepts & Lessons Learned
-
-## 1. Express Application
-
-The Express framework allows developers to quickly create web servers and REST APIs.
-
-```js
-import express from "express";
-
-const app = express();
-```
-
-The `app` object is responsible for defining routes, middleware, and starting the server.
-
----
-
-## 2. JSON Middleware
-
-```js
-app.use(express.json());
-```
-
-This middleware parses incoming JSON requests.
-
-Without it,
-
-```js
-req.body
-```
-
-would be
-
-```text
-undefined
-```
-
-for every POST and PUT request.
-
-This middleware should always be added before routes that receive JSON data.
-
----
-
-## 3. In-Memory Storage
-
-Instead of using a database, tasks are stored inside a JavaScript object.
-
-```js
-let tasks = {
-    1: { title: "Buy milk", done: false },
-    2: { title: "Read Express docs", done: true },
-    3: { title: "Complete Stage 4", done: false }
-};
-```
-
-Advantages:
-
-- Fast
-- Simple
-- Great for learning REST APIs
-
-Disadvantages:
-
-- Data disappears when the server restarts.
-- Not suitable for production applications.
-
----
-
-## 4. Auto Increment IDs
-
-```js
-let t_id = 4;
-```
-
-Every new task receives a unique ID.
-
-Example:
-
-```
-Task 4
-Task 5
-Task 6
-```
-
-This mimics how databases automatically generate primary keys.
-
----
-
-## 5. Reset Function
-
-```js
-function resetTasks() {
-    ...
-}
-```
-
-The reset function restores the original sample tasks.
-
-This allows developers to quickly restore a clean testing environment.
-
----
-
-## 6. GET Endpoints
-
-### GET /
-
-Returns information about the API.
-
-Example Response
-
-```json
-{
-    "name": "Task API",
-    "version": "1.0",
-    "endpoints": ["/tasks"]
-}
-```
-
----
-
-### GET /health
-
-Checks whether the server is running.
-
-Example Response
-
-```json
-{
-    "status": "ok"
-}
-```
-
----
-
-### GET /tasks
-
-Returns every task as a wrapped response object:
-
-```json
-{
-    "list": [
-        {
-            "id": 1,
-            "title": "Buy milk",
-            "done": false
-        }
-    ]
-}
-```
-
-Internally, tasks are still stored as an object.
-
-The array is produced with:
-
-```js
-Object.entries(tasks)
-```
-
-and then mapped into the API response format.
-
-The endpoint also supports optional query filters:
-
-- `GET /tasks?done=true` → returns only completed tasks
-- `GET /tasks?done=false` → returns only open tasks
-- `GET /tasks?search=milk` → returns tasks whose titles contain the search term
-
-The latest implementation uses a small regex cleanup pattern before filtering:
-
-```js
-const isDone = String(req.query.done)
-    .trim()
-    .replace(/["']/g, "")
-    .toLowerCase() === "true";
-```
-
-This is a common defensive pattern used in real APIs to normalize user input before comparisons.
-
----
-
-## 7. Object.entries() Transformation
-
-Original Storage
-
-```js
-{
-    1: { title: "Buy milk", done: false }
-}
-```
-
-After transformation
-
-```js
-[
-    {
-        id: 1,
-        title: "Buy milk",
-        done: false
-    }
-]
-```
-
-Implementation
-
-```js
-const list = Object.entries(tasks).map(([id, task]) => ({
-    id: Number(id),
-    ...task
-}));
-```
-
-This is one of the most common techniques used in REST APIs.
-
----
-
-## 8. Route Parameters
-
-Dynamic URLs allow clients to request specific resources.
-
-Example
-
-```
-GET /tasks/3
-```
-
-The route parameter is accessed using
-
-```js
-req.params.id
-```
-
----
-
-## 9. Defensive Validation
-
-The API validates every ID.
-
-```js
-const taskId = Number(req.params.id);
-
-if (
-    !Number.isInteger(taskId) ||
-    !Object.prototype.hasOwnProperty.call(tasks, taskId)
-) {
-    return res.status(404).json({
-        error: `Task ${req.params.id} not found`
-    });
-}
-```
-
-This prevents invalid requests such as
-
-```
-/tasks/abc
-/tasks/4.5
-/tasks/999
-```
-
-from crashing the application.
-
----
-
-## 10. POST Request
-
-Creates a new task.
-
-Example
-
-```json
-{
-    "title": "Learn Express"
-}
-```
-
-The server automatically generates
-
-- ID
-- done = false
-
-Response
-
-```json
-{
-    "id": 4,
-    "title": "Learn Express",
-    "done": false
-}
-```
-
----
-
-## 11. Input Sanitization and Regular Expression Cleanup
-
-Whitespace is removed before storing data, and query strings are normalized with a lightweight regex cleanup step before comparison.
-
-```js
-const title = String(req.body.title ?? "").trim();
-
-const isDone = String(req.query.done)
-    .trim()
-    .replace(/["']/g, "")
-    .toLowerCase() === "true";
-```
-
-This practice improves robustness because it handles small input inconsistencies such as:
-
-- extra spaces
-- stray quotes around values
-- case differences like `TRUE` or `True`
-
-Example
-
-Input
-
-```
-"     Learn Express      "
-```
-
-Stored value
-
-```
-Learn Express
-```
-
----
-
-## 12. Validation
-
-The API rejects empty titles.
-
-```js
-if (!title) {
-    return res.status(400).json({
-        error: "Title is required and cannot be empty"
-    });
-}
-```
-
-This ensures clean and meaningful data.
-
----
-
-## 13. PUT Request
-
-Updates an existing task.
-
-The API supports partial updates.
-
-Example
-
-```json
-{
-    "done": true
-}
-```
-
-or
-
-```json
-{
-    "title": "Learn Node.js"
-}
-```
-
-or both.
-
----
-
-## 14. Boolean Conversion
-
-```js
-tasks[taskId].done = Boolean(req.body.done);
-```
-
-Converts incoming values into true or false.
-
----
-
-## 15. DELETE Request
-
-Deletes a task.
-
-```js
-delete tasks[taskId];
-```
-
-Returns
-
-```
-204 No Content
-```
-
-which is the standard HTTP response for successful deletion.
-
----
-
-## 16. Statistics Endpoint
-
-```
-GET /stats
-```
-
-Calculates
-
-- Total Tasks
-- Completed Tasks
-- Open Tasks
-
-Implementation
-
-```js
-const total = Object.keys(tasks).length;
-
-const doneCount = Object.values(tasks)
-    .filter(t => t.done === true)
-    .length;
-```
-
-Example Response
-
-```json
-{
-    "total": 5,
-    "done": 2,
-    "open": 3
-}
-```
+The database file is created in the project directory automatically when the server starts for the first time.
 
 ---
 
 # API Endpoints
 
-| Method | Endpoint | Description |
-|---------|----------|-------------|
-| GET | `/` | API information |
-| GET | `/health` | Server health |
-| GET | `/tasks` | List all tasks |
-| GET | `/tasks/:id` | Get task by ID |
-| POST | `/tasks` | Create new task |
-| PUT | `/tasks/:id` | Update task |
-| DELETE | `/tasks/:id` | Delete task |
-| GET | `/stats` | Task statistics |
-| POST | `/reset` | Restore sample tasks |
+## GET /
 
----
+Returns basic information about the API.
 
-# Development Process
+Example response:
 
-1. Initialize project using `npm init -y`.
-2. Install Express.
-3. Configure ES Modules.
-4. Create Express application.
-5. Add JSON middleware.
-6. Create in-memory storage.
-7. Build health endpoint.
-8. Build root endpoint.
-9. Build GET endpoints.
-10. Build POST endpoint.
-11. Implement PUT endpoint.
-12. Implement DELETE endpoint.
-13. Add statistics endpoint.
-14. Add reset endpoint.
-15. Start server.
-16. Test every endpoint using curl.
-
----
-
-# curl Examples
-
-## Health Check
-
-```bash
-curl http://localhost:3000/health
+```json
+{
+  "name": "Task API",
+  "version": "1.0",
+  "endpoints": ["/tasks"]
+}
 ```
 
 ---
 
-## API Information
+## GET /health
 
-```bash
-curl http://localhost:3000/
+Returns server health information.
+
+Example response:
+
+```json
+{
+  "status": "ok"
+}
 ```
 
 ---
 
-## List All Tasks
+## GET /tasks
 
-```bash
-curl http://localhost:3000/tasks
+Returns a list of all tasks from the database.
+
+Example response:
+
+```json
+{
+  "list": [
+    {
+      "id": 1,
+      "title": "Buy milk",
+      "done": false
+    },
+    {
+      "id": 2,
+      "title": "Read Express docs",
+      "done": true
+    }
+  ]
+}
 ```
 
+The service accepts optional query parameters:
+
+- `?done=true`
+- `?done=false`
+- `?search=milk`
+
+The list endpoint translates those filters into SQL clauses.
+
 ---
 
-## Get Single Task
+## GET /tasks/:id
 
-```bash
-curl http://localhost:3000/tasks/1
+Fetches one task by ID from the database.
+
+If a task cannot be found, the API returns:
+
+```json
+{
+  "error": "Task not found"
+}
 ```
 
+The HTTP status is `404`.
+
 ---
 
-## Create Task
+## POST /tasks
 
-```bash
-curl -X POST http://localhost:3000/tasks \
--H "Content-Type: application/json" \
--d '{"title":"Learn Express"}'
+Creates a new task in the database.
+
+Request body:
+
+```json
+{
+  "title": "Write SQL notes"
+}
 ```
 
+Validation still applies:
+
+- Missing or empty title returns `400`.
+- Successful creation returns `201`.
+
 ---
 
-## Update Task
+## PUT /tasks/:id
 
-```bash
-curl -X PUT http://localhost:3000/tasks/1 \
--H "Content-Type: application/json" \
--d '{"title":"Learn Express.js","done":true}'
+Updates an existing task.
+
+Request body can contain:
+
+```json
+{
+  "title": "Updated title",
+  "done": true
+}
 ```
 
+The API keeps the same update rules as before, but now those updates execute SQL statements against the database.
+
 ---
 
-## Delete Task
+## DELETE /tasks/:id
 
-```bash
-curl -X DELETE http://localhost:3000/tasks/1
+Deletes an existing task.
+
+On success, the API returns `204 No Content`.
+
+If the ID is unknown, it returns `404` and a JSON error.
+
+---
+
+## GET /stats
+
+Returns a simple summary for the task collection.
+
+Example response:
+
+```json
+{
+  "total": 3,
+  "done": 1,
+  "open": 2
+}
 ```
 
+The business logic can still expose this endpoint, but the statistics are now backed by database state rather than an in-memory object.
+
 ---
 
-## Server Statistics
+# Assignment Stages
 
-```bash
-curl http://localhost:3000/stats
+The assignment is organized in six stages.
+
+## Stage 0 — Create your database (~30 min)
+
+Create a database file called `tasks.db` and create a table named `tasks` with these columns:
+
+- `id` (integer primary key)
+- `title` (text)
+- `done` (boolean)
+
+On application startup:
+
+1. Create the table if it does not already exist.
+2. Insert three example tasks only if the table is empty.
+
+Checkpoint:
+
+- Restart the application several times.
+- Confirm example tasks appear only once.
+
+Commit:
+
+- Stage 0: create SQLite database
+
+---
+
+## Stage 1 — Read from the database (~45 min)
+
+Replace the code that reads from the in-memory array.
+
+- `GET /tasks` should execute a SQL query returning every task.
+- `GET /tasks/:id` should return one task from the database.
+- Unknown IDs continue to return `404` with `{ "error": "Task not found" }`.
+
+Checkpoint:
+
+- `GET /tasks` returns the database contents.
+
+Commit:
+
+- Stage 1: database read endpoints
+
+---
+
+## Stage 2 — Create new tasks (~45 min)
+
+`POST /tasks` inserts a new row into the database instead of pushing into an array.
+
+Same validation rules still apply:
+
+- Missing title returns `400`
+- Successful request returns `201`
+
+Checkpoint:
+
+- Create several tasks.
+- Restart the server.
+- Run `GET /tasks` again.
+
+The tasks should still exist. This is the first time your data survives a restart.
+
+Commit:
+
+- Stage 2: insert into database
+
+---
+
+## Stage 3 — Update and delete (~45 min)
+
+Replace update and delete logic with SQL statements:
+
+- `PUT` updates a row.
+- `DELETE` removes a row.
+
+The API behaviour stays identical to the original CRUD contract.
+
+Checkpoint:
+
+- Create a task.
+- Update it.
+- Delete it.
+- Confirm each operation using `GET /tasks`.
+
+Commit:
+
+- Stage 3: update and delete with SQL
+
+---
+
+## Stage 4 — Learn your first SQL (~45 min)
+
+Open the database with a SQLite viewer, such as DB Browser for SQLite or a VS Code SQLite extension.
+
+Run these SQL queries manually:
+
+```sql
+SELECT * FROM tasks;
+SELECT * FROM tasks WHERE done = 1;
+SELECT COUNT(*) FROM tasks;
+UPDATE tasks SET done = 1;
+DELETE FROM tasks WHERE done = 1;
 ```
 
----
+Notice how the API immediately reflects those database changes.
 
-## Reset Tasks
+Checkpoint:
 
-```bash
-curl -X POST http://localhost:3000/reset
-```
+- Modify the database manually.
+- Verify the changes through the API.
 
----
+Commit:
 
-# curl Flag Reference
-
-| Flag | Purpose |
-|------|---------|
-| `-X` | Specifies the HTTP method (GET, POST, PUT, DELETE) |
-| `-H` | Adds HTTP request headers |
-| `-d` | Sends JSON data in the request body |
+- Stage 4: explored SQLite
 
 ---
 
-# HTTP Status Codes Used
+## Stage 5 — Publish your database project (~30 min)
 
-| Code | Meaning |
-|------|---------|
-| 200 | Request successful |
-| 201 | Resource created |
-| 204 | Resource deleted successfully |
-| 400 | Invalid input |
-| 404 | Resource not found |
+Update the README file and document:
 
----
+- Why SQLite was chosen
+- Where the database file is stored
+- How to start the project
+- A screenshot of the database viewer
+- One example SQL query you executed
 
-# Expected Learning Outcomes
+Checkpoint:
 
-After completing this assignment, students should be able to:
+- Someone cloning the repository can run the project and automatically create the database.
 
-- Understand RESTful API architecture.
-- Build APIs using Express.js.
-- Use middleware effectively.
-- Perform CRUD operations.
-- Validate user input.
-- Sanitize incoming data.
-- Handle route parameters safely.
-- Return appropriate HTTP status codes.
-- Transform JavaScript objects into API-friendly arrays.
-- Test REST APIs using curl.
-- Design maintainable server-side applications.
+Commit:
+
+- Stage 5: database documentation
 
 ---
 
-# Conclusion
+# Optional Extras
 
-This assignment demonstrates the complete lifecycle of a RESTful API using Express.js. It covers routing, middleware, request validation, CRUD operations, error handling, JSON responses, and API testing. These concepts provide a strong foundation for building more advanced applications using databases such as MongoDB, PostgreSQL, or MySQL in future projects.
+Choose any that sound interesting.
+
+Possible extensions:
+
+- Search using SQL: `GET /tasks?search=milk` using SQL `LIKE`
+- Filter completed tasks: `GET /tasks?done=true` using a SQL `WHERE` clause
+- Sort alphabetically by title
+- Return statistics using SQL `COUNT()` instead of counting in JavaScript
+- Store timestamps such as `created_at` and `updated_at`
+
+---
+
+# Requirements
+
+Done means every box is ticked.
+
+- The API still exposes the same CRUD endpoints as the original task API.
+- Tasks are stored in SQLite instead of memory.
+- Data survives server restarts.
+- The database is automatically created if missing.
+- The tasks table is automatically created if missing.
+- Three example tasks are inserted only on the first run.
+- CRUD operations use SQL queries.
+- Unknown IDs return `404`.
+- Invalid requests return `400`.
+- Public GitHub repository updated with README and database screenshot.
+
+---
+
+# What You Should Notice
+
+By the end of this assignment, the API should feel almost identical to the original API design.
+
+The URLs didn't change.
+The request bodies didn't change.
+The responses didn't change.
+Only the implementation changed.
+
+This separation between the API layer and the data layer is one of the foundations of backend engineering. Once this concept is understood, moving from SQLite to PostgreSQL, MySQL, SQL Server, or another database later becomes much easier.
+
+---
+
+# Glossary
+
+- **CRUD**: Create, Read, Update, and Delete operations.
+- **SQLite**: A lightweight relational database that stores data in a local file.
+- **API**: The interface that clients use to communicate with the server.
+- **Database**: A persistent system that stores application data.
+- **SQL**: Structured Query Language used to interact with relational databases.
+- **Endpoint**: A specific route exposed by the API, such as `GET /tasks`.
+- **Persistence**: The ability for data to survive server restarts.
+- **Relational Database**: A database that organizes data in tables with relationships.
+

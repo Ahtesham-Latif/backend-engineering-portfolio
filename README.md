@@ -37,6 +37,24 @@ Explore the project here:
 - [flyrank/assignment-01-Build-your-first-CRUD-API](flyrank/assignment-01-Build-your-first-CRUD-API)
 - [Documentation](flyrank/assignment-01-Build-your-first-CRUD-API/Documentation.md)
 
+### Assignment 02 — Connecting to the Database
+
+The second major project extends the same task API with a persistent SQLite-backed storage layer:
+
+- SQLite database file creation through `tasks.db`
+- Automatic `tasks` table creation when the app starts
+- SQL-based CRUD operations that replace the in-memory store
+- Seed-task insertion only when the database is empty
+- Database initialisation through a dedicated data-access layer
+- Service/controller flow that uses asynchronous database calls
+
+For database inspection, you can open the SQLite file with DB Browser for SQLite or with the VS Code SQLite Viewer extension. If you use the VS Code extension, it is read-only, so you can inspect the database but you cannot edit the DB content from that extension.
+
+Explore the project here:
+
+- [flyrank/assignment-02-Connecting-to-the-database](flyrank/assignment-02-Connecting-to-the-database)
+- [Documentation](flyrank/assignment-02-Connecting-to-the-database/Documentation.md)
+
 ---
 
 ## 🏗️ Repository Structure
@@ -45,25 +63,49 @@ Explore the project here:
 backend-engineering-portfolio/
 │
 ├── README.md
-└── flyrank/
-    └── assignment-01-Build-your-first-CRUD-API/
-        ├── Documentation.md
-        ├── index.js
-        ├── openapi.json
-        ├── package.json
-        ├── package-lock.json
-        └── src/
-            ├── app.js
-            ├── controllers/
-            │   └── taskController.js
-            ├── middleware/
-            │   └── errorHandler.js
-            ├── routes/
-            │   ├── metaRoutes.js
-            │   └── taskRoutes.js
-            ├── services/
-            │   └── taskServices.js
-            └── errors.js
+├── flyrank/
+│   ├── assignment-01-Build-your-first-CRUD-API/
+│   │   ├── Documentation.md
+│   │   ├── Learning.md
+│   │   ├── index.js
+│   │   ├── openapi.json
+│   │   ├── package.json
+│   │   ├── package-lock.json
+│   │   └── src/
+│   │       ├── app.js
+│   │       ├── errors.js
+│   │       ├── controllers/
+│   │       │   └── taskController.js
+│   │       ├── middleware/
+│   │       │   └── errorHandler.js
+│   │       ├── routes/
+│   │       │   ├── metaRoutes.js
+│   │       │   └── taskRoutes.js
+│   │       └── services/
+│   │           └── taskServices.js
+│   │
+│   └── assignment-02-Connecting-to-the-database/
+│       ├── Documentation.md
+│       ├── Learning.md
+│       ├── index.js
+│       ├── openapi.json
+│       ├── package.json
+│       ├── package-lock.json
+│       ├── tasks.db
+│       └── src/
+│           ├── app.js
+│           ├── errors.js
+│           ├── controllers/
+│           │   └── taskController.js
+│           ├── database/
+│           │   └── db.js
+│           ├── middleware/
+│           │   └── errorHandler.js
+│           ├── routes/
+│           │   ├── metaRoutes.js
+│           │   └── taskRoutes.js
+│           └── services/
+│               └── taskServices.js
 ```
 
 ---
@@ -82,6 +124,8 @@ backend-engineering-portfolio/
 
 This portfolio is developed in a consistent cloud-based workflow using GitHub Codespaces, allowing for a reliable and repeatable environment across assignments.
 
+Note: If you are using GitHub Codespaces, run `npm install` every time the container is started or rebuilt so the `node_modules` folder is available for the current assignment.
+
 Typical workflow:
 
 ```bash
@@ -91,11 +135,13 @@ npm install
 npm run dev
 ```
 
+For each assignment folder, run `npm install` inside that project directory when using Codespaces so the dependency folder is restored locally.
+
 ---
 
 ## 📄 License
 
-This project is licensed under the **MIT License**.
+This project is licensed under the **MIT License**. See the [LICENSE](LICENSE) file for the full text.
 
 ---
 
