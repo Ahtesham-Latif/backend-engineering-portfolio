@@ -82,79 +82,39 @@ Explore the project here:
 
 ```text
 backend-engineering-portfolio/
-│
 ├── README.md
-├── flyrank/
-│   ├── assignment-01-Build-your-first-CRUD-API/
-│   │   ├── Documentation.md
-│   │   ├── Learning.md
-│   │   ├── index.js
-│   │   ├── openapi.json
-│   │   ├── package.json
-│   │   ├── package-lock.json
-│   │   └── src/
-│   │       ├── app.js
-│   │       ├── errors.js
-│   │       ├── controllers/
-│   │       │   └── taskController.js
-│   │       ├── middleware/
-│   │       │   └── errorHandler.js
-│   │       ├── routes/
-│   │       │   ├── metaRoutes.js
-│   │       │   └── taskRoutes.js
-│   │       └── services/
-│   │           └── taskServices.js
-│   │
-│   ├── assignment-02-Connecting-to-the-database/
-│   │   ├── Documentation.md
-│   │   ├── Learning.md
-│   │   ├── index.js
-│   │   ├── openapi.json
-│   │   ├── package.json
-│   │   ├── package-lock.json
-│   │   ├── tasks.db
-│   │   └── src/
-│   │       ├── app.js
-│   │       ├── errors.js
-│   │       ├── controllers/
-│   │       │   └── taskController.js
-│   │       ├── database/
-│   │       │   └── db.js
-│   │       ├── middleware/
-│   │       │   └── errorHandler.js
-│   │       ├── routes/
-│   │       │   ├── metaRoutes.js
-│   │       │   └── taskRoutes.js
-│   │       └── services/
-│   │           └── taskServices.js
-│   │
-│   └── assignment-03-Containerize-your-stack/
-│       ├── .dockerignore
-│       ├── .env
-│       ├── .env.example
-│       ├── Dockerfile
-│       ├── Documentation.md
-│       ├── Learning.md
-│       ├── docker-compose.yml
-│       ├── index.js
-│       ├── openapi.json
-│       ├── package.json
-│       ├── package-lock.json
-│       └── src/
-│           ├── app.js
-│           ├── errors.js
-│           ├── controllers/
-│           │   └── taskController.js
-│           ├── database/
-│           │   └── db.js
-│           ├── middleware/
-│           │   └── errorHandler.js
-│           ├── routes/
-│           │   ├── metaRoutes.js
-│           │   └── taskRoutes.js
-│           └── services/
-│               └── taskServices.js
+└── flyrank/
+    ├── assignment-01-Build-your-first-CRUD-API/
+    │   ├── Documentation.md
+    │   ├── Learning.md
+    │   ├── index.js
+    │   ├── openapi.json
+    │   ├── package.json
+    │   └── src/
+    │       ├── app.js
+    │       ├── errors.js
+    │       ├── controllers/
+    │       ├── middleware/
+    │       ├── routes/
+    │       └── services/
+    ├── assignment-02-Connecting-to-the-database/
+    │   ├── Documentation.md
+    │   ├── Learning.md
+    │   ├── package.json
+    │   └── src/
+    │       ├── database/
+    │       └── ...
+    └── assignment-03-Containerize-your-stack/
+        ├── Documentation.md
+        ├── Learning.md
+        ├── Dockerfile
+        ├── docker-compose.yml
+        ├── package.json
+        └── src/
+            └── database/
 ```
+
+The repository is organized as a portfolio of independent assignment folders. Assignment 02 extends the API with database access files and Assignment 03 adds containerization assets such as Docker configuration and Compose orchestration.
 
 ---
 
@@ -174,18 +134,35 @@ backend-engineering-portfolio/
 
 This portfolio is developed in a consistent cloud-based workflow using GitHub Codespaces, allowing for a reliable and repeatable environment across assignments.
 
-Note: If you are using GitHub Codespaces, run `npm install` every time the container is started or rebuilt so the `node_modules` folder is available for the current assignment.
+Important: The repository root does not define a root-level Node.js project or `package.json`. Each assignment inside the `flyrank/` directory is a separate project with its own `package.json`, so dependency installation and development commands must be executed inside the relevant assignment directory, not from the repository root.
 
-Typical workflow:
+Typical workflow for Assignment 01:
 
 ```bash
 git clone https://github.com/Ahtesham-Latif/backend-engineering-portfolio.git
 cd backend-engineering-portfolio
+cd flyrank/assignment-01-Build-your-first-CRUD-API
 npm install
 npm run dev
 ```
 
-For each assignment folder, run `npm install` inside that project directory when using Codespaces so the dependency folder is restored locally.
+For Assignment 02:
+
+```bash
+cd ../assignment-02-Connecting-to-the-database
+npm install
+npm run dev
+```
+
+For Assignment 03:
+
+```bash
+cd ../assignment-03-Containerize-your-stack
+npm install
+npm run dev
+```
+
+When using GitHub Codespaces, run `npm install` within the specific assignment folder you want to work on so the `node_modules` directory is restored there.
 
 ---
 
