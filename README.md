@@ -158,11 +158,13 @@ For Assignment 03:
 
 ```bash
 cd ../assignment-03-Containerize-your-stack
-npm install
-npm run dev
+docker compose up -d --build
+docker compose logs -f app
 ```
 
 When using GitHub Codespaces, run `npm install` within the specific assignment folder you want to work on so the `node_modules` directory is restored there.
+
+Note: For Assignment 03, you do not need to run npm install or npm run dev locally.Docker automatically handles dependency installation and application execution inside the container environment.
 
 ---
 
