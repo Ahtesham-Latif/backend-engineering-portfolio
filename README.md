@@ -5,15 +5,19 @@ A professional portfolio of backend engineering assignments and learning exercis
 [![Node.js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)](https://nodejs.org/)
 [![Express](https://img.shields.io/badge/Express-000000?style=for-the-badge&logo=express&logoColor=white)](https://expressjs.com/)
 [![OpenAPI](https://img.shields.io/badge/OpenAPI-6BA539?style=for-the-badge&logo=openapiinitiative&logoColor=white)](https://www.openapis.org/)
+[![Swagger UI](https://img.shields.io/badge/Swagger-UI-85EA2D?style=for-the-badge&logo=swagger&logoColor=white)](https://swagger.io/tools/swagger-ui/)
+[![SQLite](https://img.shields.io/badge/SQLite-003B57?style=for-the-badge&logo=sqlite&logoColor=white)](https://www.sqlite.org/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
+[![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
 [![GitHub Codespaces](https://img.shields.io/badge/GitHub-Codespaces-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/features/codespaces)
 
 ---
 
 ## 🚀 Overview
 
-This repository serves as a structured record of backend engineering practice, with a focus on building REST APIs, documenting services, and refining the fundamentals of clean server-side development.
+This repository is a backend engineering portfolio that documents the work completed so far across multiple API and data-access assignments. It captures the practical learning and implementation milestones that have already been delivered, rather than describing an in-progress or future-facing roadmap.
 
-The portfolio highlights a progression from foundational API concepts to more production-minded implementation patterns such as request validation, route organization, in-memory data handling, and OpenAPI/Swagger documentation.
+So far, the portfolio covers a complete Express-based task management API, a SQLite-backed database implementation, and a Dockerized PostgreSQL deployment stack. The work includes REST endpoints, service/controller layering, input handling, OpenAPI/Swagger documentation, database initialization, SQL CRUD operations, Dockerfile and Docker Compose setup, and environment-driven configuration for a production-style container workflow.
 
 ---
 
