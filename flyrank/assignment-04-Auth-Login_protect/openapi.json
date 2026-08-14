@@ -138,7 +138,7 @@
     "/protected/profile": {
       "get": {
         "summary": "Protected staff profile endpoint",
-        "description": "Checks that the request includes a Bearer token in the Authorization header before allowing access. This is the current protected access guard pattern used by the app.",
+        "description": "Validates that the request includes a Bearer token in the Authorization header and verifies that token against Supabase before returning the authenticated staff profile.",
         "parameters": [
           {
             "in": "header",
@@ -148,26 +148,35 @@
               "type": "string",
               "example": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
             },
-            "description": "Bearer token used to prove the caller is a valid staff member"
+            "description": "Bearer token used to prove the caller is a valid, authenticated staff member"
           }
         ],
         "responses": {
           "200": {
-            "description": "Authorization header detected; access gate passed",
+            "description": "Token verified successfully; authenticated user profile returned",
             "content": {
               "application/json": {
                 "example": {
-                  "message": "Authorization header detected. Ready for cryptographic verification in Stage 3"
+                  "message": "Staff identity verified successfully",
+                  "user": {
+                    "id": "2b2b4fea-4c7e-4a28-b490-4aa421cfa699",
+                    "email": "ahteshamlatif22@gmail.com",
+                    "metadata": {
+                      "email_verified": true,
+                      "provider": "email"
+                    },
+                    "last_sign_in_at": "2026-08-14T18:67:35.000Z"
+                  }
                 }
               }
             }
           },
           "401": {
-            "description": "Unauthorized - missing or malformed Authorization header",
+            "description": "Unauthorized - missing, malformed, invalid, or expired Authorization token",
             "content": {
               "application/json": {
                 "example": {
-                  "error": "Access token required"
+                  "error": "Invalid or expired access token"
                 }
               }
             }

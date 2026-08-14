@@ -33,4 +33,13 @@ export class AuthService {
 
     return data;
   }
+
+  // Validates the provided access token and returns the user data if valid
+  static async verifyToken(accessToken) {
+    const { data: { user }, error } = await supabase.auth.getUser(accessToken);
+    if (error || !user) {
+      throw new Error('Invalid or expired access token');
+    }
+    return user;
+  }
 }

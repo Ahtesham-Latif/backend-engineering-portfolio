@@ -125,7 +125,10 @@ This is the digital badge a user presents later to access protected restaurant d
 
 ### Protected route guard pattern
 
-The current protected profile route checks for a bearer token in the Authorization header:
+The protected profile route now does two checks:
+
+1. it verifies a bearer token exists in the Authorization header
+2. it validates that token with Supabase by calling `supabase.auth.getUser(accessToken)` through `AuthService.verifyToken(token)`
 
 ```js
 const authHeader = req.headers.authorization;
@@ -133,9 +136,12 @@ const authHeader = req.headers.authorization;
 if (!authHeader || !authHeader.startsWith('Bearer ')) {
   return res.status(401).json({ error: 'Access token required' });
 }
+
+const token = authHeader.split(' ')[1];
+const user = await AuthService.verifyToken(token);
 ```
 
-This is the first concrete step toward real route protection and shows how the backend begins enforcing access control.
+This is the real route-protection flow for the assignment. The server no longer only checks that a token exists; it validates the token against Supabase before returning staff identity data.
 
 ---
 
@@ -166,15 +172,15 @@ The biggest concept in this assignment is understanding that APIs can have two l
 
 If this separation is not implemented correctly, the backend becomes unsafe.
 
-### Partial route protection
+### Verified token protection
 
-The current project has already separated the public and protected route groups. The protected profile endpoint is not yet validating the token against Supabase, but it does check that the request includes an Authorization header with a bearer token. This is the expected intermediate step before a full auth middleware implementation.
+The current project has already separated the public and protected route groups, and the protected profile endpoint now validates the bearer token with Supabase via `getUser(accessToken)`. This moves the route from a placeholder check to real identity verification.
 
 ---
 
 ## Next Logical Step
 
-The next step is to add middleware that checks the incoming bearer token and only allows access when it is valid.
+The next step is to extract this verification into reusable middleware so each protected route can share the same logic instead of repeating it per controller.
 
 A proper protected route flow would be:
 

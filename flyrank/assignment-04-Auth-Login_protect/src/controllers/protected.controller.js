@@ -1,6 +1,8 @@
-export const getProfile = (req,res)=>{
+import  {AuthService} from '../services/auth.service.js';
 
-    const authHeader = req.headers.authorization;
+export const getProfile = async (req,res)=>{
+
+const authHeader = req.headers.authorization;
 // Check For existence and Bearer Prefix
 
 if(!authHeader || !authHeader.startsWith('Bearer ')){
@@ -17,9 +19,25 @@ const token = authHeader.split(' ')[1];
     );
   }
 
-return res.status(200).json(
-    {
-        message:'Authorization header detected. Ready for cyrptographic verification in Stage 3'
-    }
-);
+   try{
+    // Verify the token using AuthService
+    const user = await AuthService.verifyToken(token);
+    // If verification is successful, return the user profile
+    return res.status(200).json(
+        {
+            message: 'Staff identity verified successfully',
+            user : {
+                id: user.id,
+                email: user.email,
+                metadata: user.user_metadata,
+                last_sign_in_at: user.last_sign_in_at
+            }
+        }
+     );
+  }
+  
+  catch (error) {
+    // If verification fails, return an error response
+    return res.status(401).json({ error: error.message });
+  }
 };

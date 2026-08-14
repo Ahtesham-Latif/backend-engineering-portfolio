@@ -242,8 +242,12 @@ Endpoint: GET /protected/profile
 Behavior:
 
 - checks for an Authorization header beginning with Bearer
-- rejects the request with 401 if the header is missing or malformed
-- is the current example of a protected route gate before deeper token validation is added
+- extracts the access token from the header
+- calls `AuthService.verifyToken(token)`, which uses `supabase.auth.getUser(accessToken)`
+- returns the authenticated user profile if the token is valid
+- returns 401 with an error message when the token is missing, expired, or invalid
+
+This is the current real implementation of the route guard. It has moved beyond the placeholder response and now verifies the identity embedded in the bearer token.
 
 ---
 
