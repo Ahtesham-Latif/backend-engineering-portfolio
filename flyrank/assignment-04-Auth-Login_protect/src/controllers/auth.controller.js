@@ -56,4 +56,13 @@ export class AuthController {
       return res.status(401).json({ error: 'Invalid login credentials' });
     }
   }
+
+  static async logout(req, res) {
+    try {
+      await AuthService.logout();
+      return res.status(200).json({ message: 'Logout successful' });
+    } catch (error) {
+      return res.status(400).json({ error: 'Failed to sign out session' });
+    }
+}
 }

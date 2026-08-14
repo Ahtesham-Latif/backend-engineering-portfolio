@@ -1,8 +1,10 @@
 import express from 'express'
-import {getProfile} from "../controllers/protected.controller.js";
+import { getProfile, getDashboard } from "../controllers/protected.controller.js";
+import { AuthMiddleware } from '../middlewares/auth.middleware.js';
 
-const router= express.Router();
+const router = express.Router();
 
-router.get("/profile",getProfile);
+router.get("/profile", AuthMiddleware.requireAuth, getProfile);
+router.get("/dashboard", AuthMiddleware.requireAuth, getDashboard);
 
 export default router;

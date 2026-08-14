@@ -82,12 +82,12 @@ Explore the project here:
 The fourth major project introduces authentication and access protection using Supabase Auth and Express.js:
 
 - Supabase client configuration for environment-based auth setup
-- Session handshake validation using `supabase.auth.getSession()`
+- Session validation and authenticated user checks through `supabase.auth.getUser(accessToken)`
 - Express app bootstrap with secure runtime configuration
 - Public and protected route separation for storefront vs. staff-only access
-- Bearer-token gate on protected routes before deeper auth validation is added
+- Real bearer-token verification on protected routes before returning staff identity data
 - Authentication workflow examples for signup, login, and access checks
-- OpenAPI-driven route documentation that reflects the current project structure
+- OpenAPI-driven route documentation that reflects the current project structure and verified-token flow
 
 Explore the project here:
 
