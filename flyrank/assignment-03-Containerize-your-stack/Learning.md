@@ -54,6 +54,56 @@ Switching to Postgres gives the API a real database server that handles multiple
 1. **Port Conflicts:** I hit a port `5432` error when an old Postgres container was already running. Using `docker ps` and `docker stop` freed up the port.
 2. **Resetting Data:** Changing `.env` credentials didn't update Postgres because the volume remembered the old settings. Running `docker compose down -v` cleared the old volume for a fresh start.
 3. **Case Sensitivity:** Linux environments are strict about file names—renaming `DOCKERFILE` to `Dockerfile` fixed my build errors immediately.
+4. **Internal vs Host DB Port:** I hit `ECONNREFUSED` when the app tried `postgres:5433`. Inside Docker, containers must talk to Postgres on `5432` (the container port). `5433` is only for host-to-container access (`localhost:5433`).
+5. **Untracked `.env` in Codespaces:** Because `.env` is ignored by Git, a fresh Codespace may not include it. The reliable fix is keeping a tracked `.env.example` and running `cp -n .env.example .env` before `docker compose up --build`.
+6. **Mock vs Production Env Values:** The values in `.env`/`.env.example` for this assignment are mock local-dev defaults. In production-style setups, I should create a runtime `.env` file from GitHub environment/Codespaces secrets instead of committing real credentials.
+
+---
+
+## Repeatable Codespaces Startup Flow
+
+Every time I open Codespaces for Assignment 03, I run this sequence:
+
+1. `docker --version`
+2. `cd /workspaces/backend-engineering-portfolio/flyrank/assignment-03-Containerize-your-stack`
+3. `cp -n .env.example .env`
+4. `docker compose up --build`
+
+This avoids two common mistakes: missing `.env` files and wrong database port usage.
+
+Note: For this portfolio assignment, env values are intentionally mock. For real deployments, the env file should be generated at runtime and populated from GitHub environment/Codespaces secrets.
+
+---
+
+## Commands
+
+1. `docker --version` - confirms Docker is available.
+2. `docker compose up --build` - builds images and starts app plus postgres.
+3. `docker compose up -d --build` - builds and starts services in detached mode.
+4. `docker compose ps` - shows service status and health state.
+5. `docker compose logs -f app` - streams app logs for live debugging.
+6. `docker compose exec -T postgres psql -U postgres -d task_db -c "SELECT id, title, done FROM tasks ORDER BY id;"` - checks persisted task rows.
+7. `docker volume ls` - lists Docker volumes to verify persistence storage exists.
+8. `docker compose down -v` - stops services and removes volumes for a full reset.
+
+---
+
+## Docker Hub Publish Story
+
+I pushed this image to Docker Hub because I wanted my project to be usable beyond my own laptop and Codespace.
+
+By publishing the container image, I turned my local build into a shareable artifact. Anyone can now pull the same image from my profile and run the API in a consistent environment without rebuilding everything from source.
+
+This made the project feel more production-minded: instead of saying "it works on my machine," I now have a portable image that other developers can run, test, and reuse.
+
+### Commands I Used
+
+```bash
+docker login
+docker compose build app
+docker tag assignment-03-containerize-your-stack-app:latest ahteshamlatif/task-api:latest
+docker push ahteshamlatif/task-api:latest
+```
 
 ---
 
