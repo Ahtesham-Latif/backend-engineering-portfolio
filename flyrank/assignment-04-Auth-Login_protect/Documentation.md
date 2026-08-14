@@ -28,18 +28,20 @@ If the API is not protected, a person could guess or manipulate URLs and access 
 
 ---
 
-## Endpoint to Restaurant Mapping
+## API Reference
 
-| Endpoint | Method | Restaurant Analogy | Return Value | Access |
+| Endpoint | Method | Description | Requires Auth | Notes |
 | --- | --- | --- | --- | --- |
-| `/public/info` | GET | Storefront sign | address, hours, welcome notice | Public |
-| `/auth/signup` | POST | HR onboarding desk | create new staff member | Public |
-| `/auth/login` | POST | Clock-in station | returns access token after validation | Public |
-| `/protected/profile` | GET | Staff locker room | user profile and identity data | Protected |
-| `/stats` | GET | Manager check-in | app status and available API routes | Public |
-| `/protected/dashboard` | GET | Secret recipe vault | confidential recipe content | Planned protected route |
+| `/` | GET | App landing / status route | No | Basic app health indicator |
+| `/docs` | GET | Swagger UI documentation | No | Interactive API docs |
+| `/public/info` | GET | Public storefront information | No | Returns restaurant hours, address, and welcome message |
+| `/auth/signup` | POST | Register a new staff member | No | Creates a Supabase Auth user |
+| `/auth/login` | POST | Authenticate staff and return access token | No | Returns JWT/session payload for protected routes |
+| `/protected/profile` | GET | Return the logged-in staff member profile | Yes | Requires valid Bearer JWT |
+| `/protected/dashboard` | GET | Return staff-only dashboard content | Yes | Requires valid Bearer JWT |
+| `/stats` | GET | Show app status and available endpoints | No | Useful for smoke testing |
 
-This reflects the current security model in the project: public information is openly available, while protected staff endpoints are designed to require a valid bearer token before access is allowed.
+This reflects the current security model in the project: public information is openly available, while protected staff endpoints require a valid bearer token before access is granted.
 
 ---
 
@@ -96,9 +98,17 @@ assignment-04-Auth-Login_protect/
 
 ---
 
-## Environment Configuration
+## Local Environment Setup
 
-The application reads Supabase connection values from a local .env file:
+Before starting the app, create a local `.env` file in the project root. The project already includes a `.env.example` template for this purpose.
+
+### 1. Copy the example file
+
+```bash
+cp .env.example .env
+```
+
+### 2. Add your Supabase values
 
 ```env
 PORT=3000
@@ -106,13 +116,98 @@ SUPABASE_URL=https://your-project.supabase.co
 SUPABASE_PUBLISHABLE_KEY=your_supabase_publishable_key
 ```
 
-The code in src/config/supabase.js reads:
+You can also use `SUPABASE_KEY` as a fallback if your Supabase setup uses that variable naming convention.
 
-- SUPABASE_URL
-- SUPABASE_PUBLISHABLE_KEY
-- and supports SUPABASE_KEY as a fallback value
+### 3. Required variables
 
-If either required value is missing, the application exits early instead of starting with invalid auth configuration.
+The app validates these values on startup:
+
+- `SUPABASE_URL`
+- `SUPABASE_PUBLISHABLE_KEY` or `SUPABASE_KEY`
+
+If either required value is missing, the server exits immediately with an error instead of running in an invalid auth state.
+
+The Supabase client is initialized in `src/config/supabase.js` using these values:
+
+```js
+import { createClient } from '@supabase/supabase-js';
+import 'dotenv/config';
+
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_KEY;
+
+if (!supabaseUrl || !supabaseKey) {
+  console.error('Missing SUPABASE_URL or SUPABASE_KEY in .env');
+  process.exit(1);
+}
+
+export const supabase = createClient(supabaseUrl, supabaseKey);
+```
+
+This keeps configuration centralized and ensures the backend cannot start without a usable Supabase connection.
+
+---
+
+## How to Run It Locally
+
+1. Open the project folder:
+
+```bash
+cd flyrank/assignment-04-Auth-Login_protect
+```
+
+2. Install dependencies:
+
+```bash
+npm install
+```
+
+3. Create your local environment file if it does not already exist:
+
+```bash
+cp .env.example .env
+```
+
+4. Fill in your Supabase project values in `.env`.
+
+5. Start the server:
+
+```bash
+npm run dev
+```
+
+6. Open the API in your browser:
+
+```text
+http://localhost:3000/docs
+```
+
+7. Test the public and protected routes using Swagger UI, curl, or Postman.
+
+### Example curl checks
+
+Public route:
+
+```bash
+curl http://localhost:3000/public/info
+```
+
+Login:
+
+```bash
+curl -X POST http://localhost:3000/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"chef@luigis.com","password":"Secret123"}'
+```
+
+Protected profile route:
+
+```bash
+curl -X GET http://localhost:3000/protected/profile \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+
+> For real testing, use your local `http://localhost:3000` URL instead of a GitHub preview redirect URL, because preview tunnels can intercept the request before it reaches the Express app.
 
 ---
 
