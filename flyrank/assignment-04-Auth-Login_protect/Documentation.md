@@ -249,6 +249,26 @@ Behavior:
 
 This is the current real implementation of the route guard. It has moved beyond the placeholder response and now verifies the identity embedded in the bearer token.
 
+### 5. Swagger UI bearer auth and route protection
+
+The OpenAPI specification now declares a bearer authentication scheme in the `components.securitySchemes` block and attaches it to the protected routes under `/protected/*`.
+
+```json
+"components": {
+  "securitySchemes": {
+    "bearerAuth": {
+      "type": "http",
+      "scheme": "bearer",
+      "bearerFormat": "JWT"
+    }
+  }
+}
+```
+
+The app serves the Swagger UI at `/docs`, and the protected endpoints are shown with a lock icon in the UI. In the browser, click the Authorize button, paste the JWT, then use Try it out on `/protected/profile` to test the staff route directly from Swagger.
+
+This checkpoint confirms the route is documented as protected and can be exercised in-browser with an authorized bearer token.
+
 ---
 
 ## Why This Matters Security-wise

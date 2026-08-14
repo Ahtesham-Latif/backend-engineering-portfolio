@@ -176,6 +176,12 @@ If this separation is not implemented correctly, the backend becomes unsafe.
 
 The current project has already separated the public and protected route groups, and the protected profile endpoint now validates the bearer token with Supabase via `getUser(accessToken)`. This moves the route from a placeholder check to real identity verification.
 
+### Swagger UI auth checkpoint
+
+The OpenAPI document now includes a bearer security scheme and applies it to the protected endpoints. That means the `/docs` page shows a lock icon next to the protected routes, and the Swagger Authorize button lets a user paste a JWT and test `/protected/profile` directly in a browser.
+
+This is the final documentation checkpoint for the Stage 5 work: the API is both protected in code and represented correctly in Swagger as a bearer-authenticated API.
+
 ---
 
 ## Next Logical Step

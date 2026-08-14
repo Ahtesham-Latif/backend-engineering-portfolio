@@ -11,6 +11,21 @@
       "description": "Local development server"
     }
   ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "JWT access token used to access protected staff routes."
+      }
+    }
+  },
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
   "paths": {
     "/public/info": {
       "get": {
@@ -139,6 +154,11 @@
       "get": {
         "summary": "Protected staff profile endpoint",
         "description": "Validates that the request includes a Bearer token in the Authorization header and verifies that token against Supabase before returning the authenticated staff profile.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "parameters": [
           {
             "in": "header",
@@ -173,6 +193,47 @@
           },
           "401": {
             "description": "Unauthorized - missing, malformed, invalid, or expired Authorization token",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Invalid or expired access token"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/protected/dashboard": {
+      "get": {
+        "summary": "Protected staff dashboard",
+        "description": "Returns classified staff-only dashboard information behind bearer-token authentication.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Staff dashboard unlocked",
+            "content": {
+              "application/json": {
+                "example": {
+                  "vault_status": "UNLOCKED",
+                  "clearance": "MARTA + Officer K // CHEF-LEVEL ACCESS",
+                  "authenticated_staff": "ahteshamlatif22@gmail.com",
+                  "classified_recipes": [
+                    {
+                      "code": "RECIPE-BIR-007",
+                      "dish_name": "Operation Biryani"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - missing or invalid bearer token",
             "content": {
               "application/json": {
                 "example": {
