@@ -6,6 +6,7 @@ A professional portfolio of backend engineering assignments and learning exercis
 [![Express](https://img.shields.io/badge/Express-000000?style=for-the-badge&logo=express&logoColor=white)](https://expressjs.com/)
 [![OpenAPI](https://img.shields.io/badge/OpenAPI-6BA539?style=for-the-badge&logo=openapiinitiative&logoColor=white)](https://www.openapis.org/)
 [![Swagger UI](https://img.shields.io/badge/Swagger-UI-85EA2D?style=for-the-badge&logo=swagger&logoColor=white)](https://swagger.io/tools/swagger-ui/)
+[![Supabase](https://img.shields.io/badge/Supabase-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white)](https://supabase.com/)
 [![SQLite](https://img.shields.io/badge/SQLite-003B57?style=for-the-badge&logo=sqlite&logoColor=white)](https://www.sqlite.org/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
 [![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
@@ -83,8 +84,10 @@ The fourth major project introduces authentication and access protection using S
 - Supabase client configuration for environment-based auth setup
 - Session handshake validation using `supabase.auth.getSession()`
 - Express app bootstrap with secure runtime configuration
-- Separation of app setup and environment configuration concerns
-- Foundation for protected route logic and authenticated user flows
+- Public and protected route separation for storefront vs. staff-only access
+- Bearer-token gate on protected routes before deeper auth validation is added
+- Authentication workflow examples for signup, login, and access checks
+- OpenAPI-driven route documentation that reflects the current project structure
 
 Explore the project here:
 

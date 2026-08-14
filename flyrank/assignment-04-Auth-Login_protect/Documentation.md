@@ -2,15 +2,16 @@
 
 ## The Secret Recipe Vault: Restaurant Staff Portal
 
-This assignment simulates a real restaurant security problem. The backend must serve both public information and protected internal staff data. The public side is open to everyone, but the internal kitchen staff area contains secret recipes, employee details, and sensitive operational information that must be protected behind authentication.
+This assignment simulates a real restaurant security problem. The backend serves both public information and protected staff-only data. The public storefront is open to everyone, while the internal kitchen area contains sensitive employee and operational information that should only be accessed by authenticated staff.
 
 The restaurant story is simple:
 
 - Public storefront data can be viewed by anyone
 - Staff-only data must be locked behind a secure digital badge
-- Login creates the badge, and protected routes require that badge to access sensitive information
+- Signup and login create the badge that identifies a staff member
+- Protected routes require a valid Authorization header before access is granted
 
-For learning notes and reflection, see `Learning.md`.
+For learning notes and reflection, see Learning.md.
 
 ---
 
@@ -21,9 +22,9 @@ Imagine a famous restaurant chain called Luigi's Secret Kitchen.
 The same backend serves two very different types of visitors:
 
 - The dining public: needs the restaurant address and hours
-- Internal staff: needs access to recipes, employee roles, and internal account information
+- Internal staff: needs access to private employee and operational information
 
-If the API is not protected, a person could guess or manipulate URLs and access private staff information. That is why secure authentication is essential.
+If the API is not protected, a person could guess or manipulate URLs and access private staff data. This assignment demonstrates the importance of public vs. protected access boundaries and the first step toward enforcing them.
 
 ---
 
@@ -35,10 +36,10 @@ If the API is not protected, a person could guess or manipulate URLs and access 
 | `/auth/signup` | POST | HR onboarding desk | create new staff member | Public |
 | `/auth/login` | POST | Clock-in station | returns access token after validation | Public |
 | `/protected/profile` | GET | Staff locker room | user profile and identity data | Protected |
-| `/protected/dashboard` | GET | Secret recipe vault | confidential recipe content | Protected |
-| `/auth/logout` | POST | Clock-out station | ends session cleanly | Protected |
+| `/stats` | GET | Manager check-in | app status and available API routes | Public |
+| `/protected/dashboard` | GET | Secret recipe vault | confidential recipe content | Planned protected route |
 
-This reflects the security model behind the assignment: public access for general information and token-based protection for staff areas.
+This reflects the current security model in the project: public information is openly available, while protected staff endpoints are designed to require a valid bearer token before access is allowed.
 
 ---
 
@@ -49,8 +50,9 @@ This assignment focuses on:
 - connecting the Express app to a Supabase Auth backend
 - validating environment variables before the server starts
 - creating signup and login flows for restaurant staff accounts
-- preparing the application for protected routes that require a valid unsigned/validated token
-- demonstrating a secure authentication model using a real backend service
+- separating public and protected routes in the Express app
+- checking for a bearer token before access is allowed to private staff endpoints
+- demonstrating the first layers of secure authentication in a real backend service
 
 ---
 
@@ -60,6 +62,7 @@ This assignment focuses on:
 - Express.js
 - Supabase JavaScript SDK
 - dotenv
+- Swagger UI
 - GitHub Codespaces
 
 ---
@@ -68,29 +71,34 @@ This assignment focuses on:
 
 ```text
 assignment-04-Auth-Login_protect/
-├── .env
-├── .env.example
 ├── Documentation.md
 ├── Learning.md
 ├── index.js
+├── openapi.json
 ├── package.json
-└── src/
-    ├── app.js
-    ├── config/
-    │   └── supabase.js
-    ├── controllers/
-    │   └── auth.controller.js
-    ├── routes/
-    │   └── auth.routes.js
-    └── services/
-        └── auth.service.js
+├── src/
+│   ├── app.js
+│   ├── config/
+│   │   └── supabase.js
+│   ├── controllers/
+│   │   ├── auth.controller.js
+│   │   ├── protected.controller.js
+│   │   └── public.controller.js
+│   ├── routes/
+│   │   ├── auth.routes.js
+│   │   ├── protected.routes.js
+│   │   ├── public.routes.js
+│   │   └── stats.routes.js
+│   └── services/
+│       └── auth.service.js
+└── image.png
 ```
 
 ---
 
 ## Environment Configuration
 
-The application reads Supabase connection values from `.env`:
+The application reads Supabase connection values from a local .env file:
 
 ```env
 PORT=3000
@@ -98,13 +106,13 @@ SUPABASE_URL=https://your-project.supabase.co
 SUPABASE_PUBLISHABLE_KEY=your_supabase_publishable_key
 ```
 
-The code in `src/config/supabase.js` reads:
+The code in src/config/supabase.js reads:
 
-- `SUPABASE_URL`
-- `SUPABASE_PUBLISHABLE_KEY`
-- and also supports `SUPABASE_KEY` as a fallback
+- SUPABASE_URL
+- SUPABASE_PUBLISHABLE_KEY
+- and supports SUPABASE_KEY as a fallback value
 
-If either required value is missing, the application shuts down early instead of starting with invalid auth configuration.
+If either required value is missing, the application exits early instead of starting with invalid auth configuration.
 
 ---
 
@@ -120,48 +128,54 @@ const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_KEY;
 
 if (!supabaseUrl || !supabaseKey) {
-  console.error("Missing SUPABASE_URL or SUPABASE_KEY in .env");
+  console.error('Missing SUPABASE_URL or SUPABASE_KEY in .env');
   process.exit(1);
 }
 
 export const supabase = createClient(supabaseUrl, supabaseKey);
 ```
 
-This is the backend’s secure identity gateway. Without a valid Supabase project configuration, the app cannot begin its auth flow.
+This is the backend identity gateway. Without a valid Supabase project configuration, the app cannot begin its auth flow.
 
 ---
 
 ## Startup Flow
 
-The app is created in `src/app.js` and mounted at `/auth`:
+The app is created in src/app.js and mounted with the public and protected route groups:
 
 ```js
 import express from 'express';
 import authRouter from './routes/auth.routes.js';
+import statsRouter from './routes/stats.routes.js';
+import publicRouter from './routes/public.routes.js';
+import protectedRouter from './routes/protected.routes.js';
 
 export function CreateApp() {
   const app = express();
   app.use(express.json());
+  app.use('/', statsRouter);
   app.use('/auth', authRouter);
+  app.use('/stats', statsRouter);
+  app.use('/public', publicRouter);
+  app.use('/protected', protectedRouter);
   return app;
 }
 ```
 
-Then `index.js` starts the server and does a basic health check with Supabase:
+This confirms the backend is exposing both public storefront endpoints and staff-only protected endpoints in a modular structure.
 
-```js
-app.listen(PORT, async () => {
-  const { error } = await supabase.auth.getSession();
+### Remote preview caveat: GitHub.dev tunnel redirects
 
-  if (error) {
-    console.error('Supabase handshake failed:', error.message);
-  } else {
-    console.log(`Server running and connected to Supabase on http://localhost:${PORT}`);
-  }
-});
+When testing through a GitHub.dev or Codespaces preview URL, the tunnel may intercept the request before it reaches the Node server. In that case, the browser or curl sees an HTTP 302 redirect to a GitHub sign-in page instead of the API response. This is a hosting-layer redirect, not an application-level auth failure.
+
+For real API testing of the Express app, use the local development URL instead:
+
+```bash
+curl -i -X GET http://localhost:3000/protected/profile \
+  -H "Authorization: Bearer test_token_123"
 ```
 
-This confirms the backend is connected to the correct authentication service before handling staff requests.
+This is the correct way to validate the route logic, because it bypasses the tunnel's authentication redirect and reaches the backend directly.
 
 ---
 
@@ -169,7 +183,7 @@ This confirms the backend is connected to the correct authentication service bef
 
 ### 1. Signup / HR onboarding
 
-Endpoint: `POST /auth/signup`
+Endpoint: POST /auth/signup
 
 Example request:
 
@@ -184,14 +198,14 @@ Example request:
 
 Behavior:
 
-- validates `email` and `password`
-- creates default profile metadata if optional fields are missing
-- registers the staff account through Supabase Auth
-- returns `201 Created` on success
+- validates email and password
+- creates a new Supabase Auth user for a restaurant staff member
+- returns a 201 Created response on success
+- returns validation errors when required values are missing
 
 ### 2. Login / Clock-in
 
-Endpoint: `POST /auth/login`
+Endpoint: POST /auth/login
 
 Example request:
 
@@ -204,12 +218,32 @@ Example request:
 
 Behavior:
 
-- validates the login request
-- calls `supabase.auth.signInWithPassword()`
-- returns an access token, refresh token, and user data
-- returns `401 Unauthorized` when login fails
+- validates the request body
+- calls Supabase Auth to sign in the user
+- returns session tokens for authenticated requests
+- returns 401 Unauthorized when credentials are invalid
 
 This represents the digital badge that unlocks the protected kitchen areas.
+
+### 3. Public storefront route
+
+Endpoint: GET /public/info
+
+Behavior:
+
+- returns generic information such as restaurant name, address, and hours
+- does not require authentication
+- is available to any visitor
+
+### 4. Protected staff route
+
+Endpoint: GET /protected/profile
+
+Behavior:
+
+- checks for an Authorization header beginning with Bearer
+- rejects the request with 401 if the header is missing or malformed
+- is the current example of a protected route gate before deeper token validation is added
 
 ---
 
@@ -217,10 +251,10 @@ This represents the digital badge that unlocks the protected kitchen areas.
 
 The restaurant example maps directly to real authentication behavior:
 
-- `400 Bad Request` means the staff member forgot important login information
-- `401 Unauthorized` means a request arrived without a valid badge or with a broken token
-- `201 Created` means a new employee record was successfully onboarded
-- `200 OK` means the protected area was successfully accessed
+- 400 Bad Request means the request is incomplete or missing required fields
+- 401 Unauthorized means the request arrived without a valid badge or with a broken token
+- 201 Created means a new user or staff record was successfully onboarded
+- 200 OK means the protected or public route was accessed successfully
 
 This is the same logic used in real backend security: if the token is valid, the request is trusted; if not, the system denies access.
 
@@ -230,26 +264,29 @@ This is the same logic used in real backend security: if the token is valid, the
 
 The code is split cleanly between the transport layer and business logic:
 
-- `src/controllers/auth.controller.js` handles HTTP validation and responses
-- `src/services/auth.service.js` communicates with Supabase Auth
-- `src/routes/auth.routes.js` maps routes to controller actions
+- src/controllers/auth.controller.js handles HTTP validation and responses
+- src/services/auth.service.js communicates with Supabase Auth
+- src/routes/auth.routes.js maps routes to controller actions
+- src/controllers/public.controller.js handles storefront access
+- src/controllers/protected.controller.js handles the staff-only access gate
+- src/routes/public.routes.js and src/routes/protected.routes.js mount the public and protected endpoints
 
-This separation makes the app easier to understand, test, and extend as more protected routes are added.
+This separation keeps the app readable and makes it easier to add authentication middleware later.
 
 ---
 
 ## Current Status
 
-This project currently implements the core authentication foundation:
+This project currently implements the core authentication foundation and route separation:
 
 - staff signup
 - staff login
 - token generation from Supabase
-- startup validation
+- public storefront access
+- protected route guard for Authorization header validation
+- startup validation for required environment values
 
-It does not yet include middleware-based token verification for protected endpoints, but the architecture is prepared for that next stage.
-
-The next natural step is adding middleware that checks the bearer token before allowing access to private staff routes.
+The next step is to replace the current placeholder protection with real middleware that verifies the bearer token against Supabase or a custom auth layer before allowing access to private staff routes.
 
 ---
 

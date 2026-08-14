@@ -1,9 +1,9 @@
 {
   "openapi": "3.0.0",
   "info": {
-    "title": "Secret Kitchen Staff Auth API",
+    "title": "Marta's Secret Kitchen API",
     "version": "1.0.0",
-    "description": "Authentication API for restaurant staff signup and login. This project currently implements the staff onboarding and clock-in flows through Supabase Auth using Express.js."
+    "description": "Authentication and route-protection API for restaurant staff signup, login, public storefront information, and protected staff access checks."
   },
   "servers": [
     {
@@ -12,6 +12,27 @@
     }
   ],
   "paths": {
+    "/public/info": {
+      "get": {
+        "summary": "Public storefront information",
+        "description": "Returns public restaurant information such as the business name, address, and operating hours. No authentication is required.",
+        "responses": {
+          "200": {
+            "description": "Public information returned successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "restaurant_name": "Marta's Secret Kitchen",
+                  "operating_hours": "11:00 AM - 10:30 PM (Tue-Sun)",
+                  "address": "Bladr Runner, Sector 2049",
+                  "message": "Welcome! This information is public and open to everyone."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/auth/signup": {
       "post": {
         "summary": "Register a new staff member",
@@ -114,6 +135,46 @@
         }
       }
     },
+    "/protected/profile": {
+      "get": {
+        "summary": "Protected staff profile endpoint",
+        "description": "Checks that the request includes a Bearer token in the Authorization header before allowing access. This is the current protected access guard pattern used by the app.",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+            },
+            "description": "Bearer token used to prove the caller is a valid staff member"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authorization header detected; access gate passed",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Authorization header detected. Ready for cryptographic verification in Stage 3"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - missing or malformed Authorization header",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Access token required"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/stats": {
       "get": {
         "summary": "Health/status route",
@@ -127,7 +188,11 @@
                   "message": "Stats route is working!",
                   "Endpoints are": [
                     "/",
-                    "/docs"
+                    "/docs",
+                    "/public/info",
+                    "/auth/signup",
+                    "/auth/login",
+                    "/protected/profile"
                   ]
                 }
               }

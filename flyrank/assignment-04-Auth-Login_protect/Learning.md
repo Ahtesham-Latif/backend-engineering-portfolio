@@ -4,7 +4,7 @@ This assignment introduced the core idea behind secure backend access: not every
 
 The restaurant analogy is useful because it turns an abstract authentication lesson into a clear business problem: the public sees the storefront, but the internal recipe vault must stay locked.
 
-For the implementation summary and setup details, see `Documentation.md`.
+For the implementation summary and setup details, see Documentation.md.
 
 ---
 
@@ -36,7 +36,7 @@ This is the same pattern used in real backend systems, where a valid user sessio
 
 ### 1. Authentication is about trust, not just login
 
-A login endpoint is not enough by itself. It is the start of a trust chain. Once a user logs in, the backend needs a way to verify future requests. In a real app, that verification happens through a token that is attached to the request and checked before protected data is returned.
+A login endpoint is not enough by itself. It is the start of a trust chain. Once a user logs in, the backend needs a way to verify future requests. In a real app, that verification happens through a token attached to the request and checked before protected data is returned.
 
 ### 2. Supabase Auth gives a clean auth backbone
 
@@ -44,22 +44,24 @@ The current project uses Supabase for signup and login. This is useful because i
 
 The workflow is:
 
-- user sends email and password
-- backend calls Supabase Auth
+- a user sends email and password
+- the backend calls Supabase Auth
 - Supabase validates credentials
 - session data is returned
 - future protected requests should require that session token
 
 ### 3. Project structure matters in real backend work
 
-The current app is separated into:
+The current app is divided into clear responsibilities:
 
-- `routes/auth.routes.js` for endpoints
-- `controllers/auth.controller.js` for request handling
-- `services/auth.service.js` for auth logic
-- `config/supabase.js` for infrastructure setup
+- routes/auth.routes.js for auth endpoints
+- controllers/auth.controller.js for request handling
+- services/auth.service.js for auth logic
+- config/supabase.js for infrastructure setup
+- routes/public.routes.js and controllers/public.controller.js for storefront data
+- routes/protected.routes.js and controllers/protected.controller.js for staff-only access checks
 
-This is the correct architecture for a scalable API. It keeps code readable and makes it easier to layer in middleware and protected route logic later.
+This is the correct architecture for a scalable API. It keeps code readable and makes it easier to layer in reusable middleware and protected route logic later.
 
 ### 4. Security should fail fast
 
@@ -75,7 +77,7 @@ The app checks for required values before startup:
 
 ```js
 if (!supabaseUrl || !supabaseKey) {
-  console.error("Missing SUPABASE_URL or SUPABASE_KEY in .env");
+  console.error('Missing SUPABASE_URL or SUPABASE_KEY in .env');
   process.exit(1);
 }
 ```
@@ -84,14 +86,23 @@ This prevents the API from running in an insecure or invalid state.
 
 ### App bootstrap and route mounting
 
-The Express app is created in a modular way and routes are mounted under `/auth`:
+The Express app is created in a modular way and route groups are mounted separately for public and protected access:
 
 ```js
-app.use(express.json());
+app.use('/', statsRouter);
 app.use('/auth', authRouter);
+app.use('/stats', statsRouter);
+app.use('/public', publicRouter);
+app.use('/protected', protectedRouter);
 ```
 
 This keeps the project easier to grow into a larger backend system.
+
+### Remote preview caveat
+
+A GitHub.dev or Codespaces preview URL can redirect requests before they reach the local Express server. This is often seen as an HTTP 302 to a GitHub sign-in page. It is not the API rejecting the request; it is the tunnel infrastructure redirecting traffic first.
+
+For accurate testing of route behavior, always prefer the local server URL, such as http://localhost:3000/protected/profile, and include the Authorization header there.
 
 ### Token-based identity model
 
@@ -110,7 +121,21 @@ The login flow returns session information such as:
 }
 ```
 
-This is the digital badge that a user presents later to access protected restaurant data.
+This is the digital badge a user presents later to access protected restaurant data.
+
+### Protected route guard pattern
+
+The current protected profile route checks for a bearer token in the Authorization header:
+
+```js
+const authHeader = req.headers.authorization;
+
+if (!authHeader || !authHeader.startsWith('Bearer ')) {
+  return res.status(401).json({ error: 'Access token required' });
+}
+```
+
+This is the first concrete step toward real route protection and shows how the backend begins enforcing access control.
 
 ---
 
@@ -123,7 +148,8 @@ The mental model is:
 3. the server verifies credentials with Supabase
 4. a valid session token is returned
 5. the token is used to prove identity on later requests
-6. unauthorized users are rejected with `401 Unauthorized`
+6. unauthorized users are rejected with 401 Unauthorized
+7. the public routes remain available without authentication
 
 This is the exact idea behind real auth flows in production-grade backend systems.
 
@@ -140,9 +166,9 @@ The biggest concept in this assignment is understanding that APIs can have two l
 
 If this separation is not implemented correctly, the backend becomes unsafe.
 
-### Missing route protection
+### Partial route protection
 
-Right now the project focuses on the login/signup foundation. The app is not yet enforcing protected routes with middleware. That is expected for this stage, and it sets up the next task: validating tokens before allowing access to private resources.
+The current project has already separated the public and protected route groups. The protected profile endpoint is not yet validating the token against Supabase, but it does check that the request includes an Authorization header with a bearer token. This is the expected intermediate step before a full auth middleware implementation.
 
 ---
 
