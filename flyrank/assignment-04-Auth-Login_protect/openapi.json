@@ -1,0 +1,140 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Secret Kitchen Staff Auth API",
+    "version": "1.0.0",
+    "description": "Authentication API for restaurant staff signup and login. This project currently implements the staff onboarding and clock-in flows through Supabase Auth using Express.js."
+  },
+  "servers": [
+    {
+      "url": "/",
+      "description": "Local development server"
+    }
+  ],
+  "paths": {
+    "/auth/signup": {
+      "post": {
+        "summary": "Register a new staff member",
+        "description": "Creates a new Supabase Auth user for restaurant staff. Email and password are required, and optional profile metadata such as full_name and staff_role can be included.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "email": "chef_marco@luigiskitchen.com",
+                "password": "SecretPassword123!",
+                "full_name": "Marco Rossi",
+                "staff_role": "Head Chef"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Staff member registered successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Staff registered successfully",
+                  "user": {
+                    "id": "8e8d7f2d-4b19-4b2d-95ab-1d4dbd8e91db",
+                    "email": "chef_marco@luigiskitchen.com",
+                    "created_at": "2026-08-14T10:20:00.000Z"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - missing email or password",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Email and password are required"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "summary": "Authenticate a staff member",
+        "description": "Logs in an existing staff account and returns the Supabase session tokens needed for protected routes.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "email": "chef_marco@luigiskitchen.com",
+                "password": "SecretPassword123!"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login successful",
+            "content": {
+              "application/json": {
+                "example": {
+                  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+                  "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+                  "token_type": "bearer",
+                  "expires_in": 3600,
+                  "user": {
+                    "id": "8e8d7f2d-4b19-4b2d-95ab-1d4dbd8e91db",
+                    "email": "chef_marco@luigiskitchen.com"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - missing email or password",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Email and password are required"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - invalid login credentials",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Invalid login credentials"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/stats": {
+      "get": {
+        "summary": "Health/status route",
+        "description": "Returns a simple message confirming the stats route is active and provides the available endpoints for this project.",
+        "responses": {
+          "200": {
+            "description": "Status lookup successful",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Stats route is working!",
+                  "Endpoints are": [
+                    "/",
+                    "/docs"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

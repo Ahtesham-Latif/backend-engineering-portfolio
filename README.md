@@ -190,7 +190,13 @@ When using GitHub Codespaces, run `npm install` within the specific assignment f
 
 Note: For Assignment 03, you do not need to run npm install or npm run dev locally.Docker automatically handles dependency installation and application execution inside the container environment.
 
----
+For Assignment 04:
+
+```bash
+cd ../assignment-04-Auth-Login_protect
+npm install
+npm run dev
+```
 
 ## 📄 License
 
