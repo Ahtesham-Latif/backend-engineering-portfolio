@@ -17,7 +17,7 @@ A professional portfolio of backend engineering assignments and learning exercis
 
 This repository is a backend engineering portfolio that documents the work completed so far across multiple API and data-access assignments. It captures the practical learning and implementation milestones that have already been delivered, rather than describing an in-progress or future-facing roadmap.
 
-So far, the portfolio covers a complete Express-based task management API, a SQLite-backed database implementation, and a Dockerized PostgreSQL deployment stack. The work includes REST endpoints, service/controller layering, input handling, OpenAPI/Swagger documentation, database initialization, SQL CRUD operations, Dockerfile and Docker Compose setup, and environment-driven configuration for a production-style container workflow.
+So far, the portfolio covers a complete Express-based task management API, a SQLite-backed database implementation, a Dockerized PostgreSQL deployment stack, and an authentication-focused Supabase integration. The work includes REST endpoints, service/controller layering, input handling, OpenAPI/Swagger documentation, database initialization, SQL CRUD operations, Dockerfile and Docker Compose setup, and environment-driven configuration for production-style workflows and protected API access.
 
 ---
 
@@ -76,6 +76,21 @@ Explore the project here:
 - [flyrank/assignment-03-Containerize-your-stack](flyrank/assignment-03-Containerize-your-stack)
 - [Documentation](flyrank/assignment-03-Containerize-your-stack/Documentation.md)
 
+### Assignment 04 — Auth Login & Protect
+
+The fourth major project introduces authentication and access protection using Supabase Auth and Express.js:
+
+- Supabase client configuration for environment-based auth setup
+- Session handshake validation using `supabase.auth.getSession()`
+- Express app bootstrap with secure runtime configuration
+- Separation of app setup and environment configuration concerns
+- Foundation for protected route logic and authenticated user flows
+
+Explore the project here:
+
+- [flyrank/assignment-04-Auth-Login_protect](flyrank/assignment-04-Auth-Login_protect)
+- [Documentation](flyrank/assignment-04-Auth-Login_protect/Documentation.md)
+
 ---
 
 ## 🏗️ Repository Structure
@@ -104,14 +119,22 @@ backend-engineering-portfolio/
     │   └── src/
     │       ├── database/
     │       └── ...
-    └── assignment-03-Containerize-your-stack/
+    ├── assignment-03-Containerize-your-stack/
+    │   ├── Documentation.md
+    │   ├── Learning.md
+    │   ├── Dockerfile
+    │   ├── docker-compose.yml
+    │   ├── package.json
+    │   └── src/
+    │       └── database/
+    └── assignment-04-Auth-Login_protect/
         ├── Documentation.md
         ├── Learning.md
-        ├── Dockerfile
-        ├── docker-compose.yml
+        ├── .env.example
+        ├── index.js
         ├── package.json
         └── src/
-            └── database/
+            └── config/
 ```
 
 The repository is organized as a portfolio of independent assignment folders. Assignment 02 extends the API with database access files and Assignment 03 adds containerization assets such as Docker configuration and Compose orchestration.
@@ -126,6 +149,7 @@ The repository is organized as a portfolio of independent assignment folders. As
 - API exploration through Swagger/OpenAPI tooling
 - Containerization patterns using Docker and Docker Compose
 - PostgreSQL integration with a protected database layer and connection pooling
+- Authentication flows using Supabase and session-based validation
 - Iterative backend development with focus on maintainability
 
 ---
